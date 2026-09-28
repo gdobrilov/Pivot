@@ -1,0 +1,29 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+*.trx
+
+# Node / Vite
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# SQLite databases created by local runs
+*.db
+*.db-shm
+*.db-wal

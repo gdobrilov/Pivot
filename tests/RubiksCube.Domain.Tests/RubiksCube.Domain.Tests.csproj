@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../src/RubiksCube.Domain/RubiksCube.Domain.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Console entry point for the TTC challenge: prints the cube before and after a move sequence. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>rubiks</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../RubiksCube.Application/RubiksCube.Application.csproj" />
+  </ItemGroup>
+</Project>
