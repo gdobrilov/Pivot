@@ -27,11 +27,13 @@ export interface CubeApi {
 }
 
 export function createCubeApi(baseUrl = '/api/cubes', fetchFn: typeof fetch = fetch): CubeApi {
-  async function request<T>(path: string, init?: RequestInit): Promise<T> {
-    const response = await fetchFn(`${baseUrl}${path}`, {
-      headers: { 'Content-Type': 'application/json' },
-      ...init,
-    });
+  async function request<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
+    const response = await fetchFn(
+      `${baseUrl}${path}`,
+      body === undefined
+        ? { method }
+        : { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
+    );
 
     if (!response.ok) {
       const problem = (await response.json().catch(() => ({}))) as ProblemDetails;
@@ -42,13 +44,12 @@ export function createCubeApi(baseUrl = '/api/cubes', fetchFn: typeof fetch = fe
   }
 
   return {
-    create: () => request('', { method: 'POST' }),
+    create: () => request('', 'POST'),
     get: (id) => request(`/${id}`),
     preview: (id, face, rotation) => request(`/${id}/preview?face=${face}&rotation=${rotation}`),
-    rotate: (id, face, rotation) =>
-      request(`/${id}/rotations`, { method: 'POST', body: JSON.stringify({ face, rotation }) }),
-    undo: (id) => request(`/${id}/rotations/undo`, { method: 'POST' }),
-    reset: (id) => request(`/${id}/reset`, { method: 'POST' }),
+    rotate: (id, face, rotation) => request(`/${id}/rotations`, 'POST', { face, rotation }),
+    undo: (id) => request(`/${id}/undo`, 'POST'),
+    reset: (id) => request(`/${id}/reset`, 'POST'),
     log: (id) => request(`/${id}/rotations`),
   };
 }

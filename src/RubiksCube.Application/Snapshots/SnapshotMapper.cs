@@ -58,7 +58,7 @@ public static class SnapshotMapper
         ArgumentNullException.ThrowIfNull(entry);
         return new RotationLogEntrySnapshot(
             entry.Sequence,
-            entry.Kind.ToString(),
+            entry.Kind,
             entry.Face,
             entry.Rotation,
             entry.Move is { } move ? MoveNotation.Format(move) : null,

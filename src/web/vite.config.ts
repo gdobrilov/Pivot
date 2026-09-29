@@ -2,17 +2,14 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// In development the API runs on http://localhost:5000; Vite proxies /api there so the
-// browser only ever talks to one origin.
+// In development the API runs on http://localhost:5080; Vite forwards /api there, so the browser
+// only ever talks to one origin.
 export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
     proxy: {
-      '/api': {
-        target: process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:5000',
-        changeOrigin: true,
-      },
+      '/api': { target: 'http://localhost:5080', changeOrigin: true },
     },
   },
   test: {

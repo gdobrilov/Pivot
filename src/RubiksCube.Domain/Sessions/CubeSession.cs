@@ -21,10 +21,11 @@ public sealed class CubeSession
 
     public DateTimeOffset CreatedAtUtc { get; private set; }
 
-    /// <summary>Bumped on every change; persistence uses it as a concurrency token.</summary>
+    /// <summary>Bumped on every change, so it equals the log length; persistence uses it as the concurrency token.</summary>
     public int Version { get; private set; }
 
-    public IReadOnlyList<RotationLogEntry> Log => _log;
+    /// <summary>Oldest first. Sorted here so the order never depends on how the database returns rows.</summary>
+    public IReadOnlyList<RotationLogEntry> Log => _log.OrderBy(entry => entry.Sequence).ToList().AsReadOnly();
 
     /// <summary>Rotations since the last reset, minus the undone ones.</summary>
     public IReadOnlyList<Move> EffectiveMoves
@@ -32,21 +33,21 @@ public sealed class CubeSession
         get
         {
             var stack = new Stack<Move>();
-            foreach (var entry in _log)
+            foreach (var entry in Log)
             {
                 switch (entry.Kind)
                 {
                     case LogEntryKind.Rotation when entry.Move is { } move:
                         stack.Push(move);
                         break;
-                    case LogEntryKind.Undo:
+                    case LogEntryKind.Undo when stack.Count > 0:
                         stack.Pop();
                         break;
                     case LogEntryKind.Reset:
                         stack.Clear();
                         break;
                     default:
-                        throw new InvalidOperationException($"Unknown log entry kind {entry.Kind}.");
+                        throw new InvalidOperationException($"Log entry {entry.Sequence} ({entry.Kind}) does not fit the entries before it.");
                 }
             }
 
@@ -56,13 +57,13 @@ public sealed class CubeSession
 
     public bool CanUndo => EffectiveMoves.Count > 0;
 
-    public static CubeSession Create(DateTimeOffset now) => new(Guid.NewGuid(), Cube.Solved(), now);
+    public static CubeSession Create(DateTimeOffset now) => new(Guid.CreateVersion7(now), Cube.Solved(), now.ToUniversalTime());
 
     public RotationLogEntry Rotate(Move move, DateTimeOffset now)
     {
         Cube = Cube.Turn(move);
         var entry = Append(LogEntryKind.Rotation, move, now);
-        _pendingEvents.Add(new CubeRotated(Id, entry.Sequence, move, now));
+        _pendingEvents.Add(new CubeRotated(Id, entry.Sequence, move, entry.OccurredAtUtc));
         return entry;
     }
 
@@ -78,7 +79,7 @@ public sealed class CubeSession
         var undone = effective[^1];
         Cube = Cube.Turn(undone.Inverse);
         var entry = Append(LogEntryKind.Undo, undone, now);
-        _pendingEvents.Add(new RotationUndone(Id, entry.Sequence, undone, now));
+        _pendingEvents.Add(new RotationUndone(Id, entry.Sequence, undone, entry.OccurredAtUtc));
         return entry;
     }
 
@@ -86,7 +87,7 @@ public sealed class CubeSession
     {
         Cube = Cube.Solved(Cube.Size);
         var entry = Append(LogEntryKind.Reset, move: null, now);
-        _pendingEvents.Add(new CubeReset(Id, entry.Sequence, now));
+        _pendingEvents.Add(new CubeReset(Id, entry.Sequence, entry.OccurredAtUtc));
         return entry;
     }
 
@@ -100,7 +101,7 @@ public sealed class CubeSession
 
     private RotationLogEntry Append(LogEntryKind kind, Move? move, DateTimeOffset now)
     {
-        var entry = new RotationLogEntry(_log.Count + 1, kind, move?.Face, move?.Rotation, now);
+        var entry = new RotationLogEntry(_log.Count + 1, kind, move?.Face, move?.Rotation, now.ToUniversalTime());
         _log.Add(entry);
         Version++;
         return entry;

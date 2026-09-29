@@ -15,7 +15,7 @@ namespace RubiksCube.Infrastructure.Persistence.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.20");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
 
             modelBuilder.Entity("RubiksCube.Domain.Sessions.CubeSession", b =>
                 {
@@ -27,7 +27,6 @@ namespace RubiksCube.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Cube")
                         .IsRequired()
-                        .HasMaxLength(64)
                         .HasColumnType("TEXT")
                         .HasColumnName("Facelets");
 

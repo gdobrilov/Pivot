@@ -16,11 +16,7 @@ internal sealed class FakeRepository : ICubeSessionRepository
     public Task<CubeSession?> FindAsync(Guid id, CancellationToken cancellationToken = default) =>
         Task.FromResult(_sessions.GetValueOrDefault(id));
 
-    public Task AddAsync(CubeSession session, CancellationToken cancellationToken = default)
-    {
-        _sessions[session.Id] = session;
-        return Task.CompletedTask;
-    }
+    public void Add(CubeSession session) => _sessions[session.Id] = session;
 
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -35,18 +31,24 @@ internal sealed class FakeRepository : ICubeSessionRepository
     }
 }
 
-internal sealed class FakeClock : IClock
+internal sealed class FixedTimeProvider : TimeProvider
 {
-    public DateTimeOffset UtcNow { get; set; } = new(2026, 9, 28, 12, 0, 0, TimeSpan.Zero);
+    public DateTimeOffset Now { get; set; } = new(2026, 9, 28, 12, 0, 0, TimeSpan.Zero);
+
+    public override DateTimeOffset GetUtcNow() => Now;
 }
 
-internal sealed class RecordingDispatcher : IDomainEventDispatcher
+/// <summary>Records events and how many saves had happened when they were dispatched.</summary>
+internal sealed class RecordingDispatcher(FakeRepository repository) : IDomainEventDispatcher
 {
     public List<IDomainEvent> Dispatched { get; } = [];
+
+    public List<int> SaveCountAtDispatch { get; } = [];
 
     public Task DispatchAsync(IReadOnlyList<IDomainEvent> events, CancellationToken cancellationToken = default)
     {
         Dispatched.AddRange(events);
+        SaveCountAtDispatch.Add(repository.SaveCount);
         return Task.CompletedTask;
     }
 }

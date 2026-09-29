@@ -3,6 +3,10 @@
 **/node_modules/
 **/dist/
 **/TestResults/
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/*.tsbuildinfo
 .git/
 .github/
 .vs/

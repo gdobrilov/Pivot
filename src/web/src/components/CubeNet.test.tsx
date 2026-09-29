@@ -5,27 +5,24 @@ import { CHALLENGE_RESULT, FRONT_PREVIEW, SOLVED } from '../test/fixtures';
 
 describe('CubeNet', () => {
   it('renders six faces with nine stickers each', () => {
-    render(<CubeNet faces={SOLVED.faces} selectedFace={null} disabled={false} onSelectFace={vi.fn()} />);
+    render(<CubeNet faces={SOLVED.faces} selectedFace={null} busy={false} onSelectFace={vi.fn()} />);
 
     for (const face of ['Up', 'Left', 'Front', 'Right', 'Back', 'Down']) {
-      expect(within(screen.getByTestId(`face-${face}`)).getAllByRole('img')).toHaveLength(9);
+      expect(within(screen.getByTestId(`face-${face}`)).getAllByTestId('sticker')).toHaveLength(9);
     }
   });
 
-  it('shows the sticker colours of the challenge result in row-major order', () => {
-    render(<CubeNet faces={CHALLENGE_RESULT.faces} selectedFace={null} disabled={false} onSelectFace={vi.fn()} />);
+  it('describes each face to screen readers row by row', () => {
+    render(<CubeNet faces={CHALLENGE_RESULT.faces} selectedFace={null} busy={false} onSelectFace={vi.fn()} />);
 
-    const upStickers = within(screen.getByTestId('face-Up')).getAllByRole('img');
-    expect(upStickers.map((sticker) => sticker.getAttribute('aria-label'))).toEqual([
-      'Red', 'Orange', 'Green',
-      'Blue', 'White', 'White',
-      'Blue', 'Blue', 'Blue',
-    ]);
+    expect(screen.getByRole('button', { name: 'Up face' })).toHaveAccessibleDescription(
+      'row 1: red, orange, green. row 2: blue, white, white. row 3: blue, blue, blue.',
+    );
   });
 
   it('selects a face when it is clicked', async () => {
     const onSelectFace = vi.fn();
-    render(<CubeNet faces={SOLVED.faces} selectedFace="Front" disabled={false} onSelectFace={onSelectFace} />);
+    render(<CubeNet faces={SOLVED.faces} selectedFace="Front" busy={false} onSelectFace={onSelectFace} />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Right face' }));
 
@@ -33,14 +30,26 @@ describe('CubeNet', () => {
     expect(screen.getByRole('button', { name: 'Front face' })).toHaveAttribute('aria-pressed', 'true');
   });
 
+  it('ignores clicks while busy but keeps the faces focusable', async () => {
+    const onSelectFace = vi.fn();
+    render(<CubeNet faces={SOLVED.faces} selectedFace={null} busy onSelectFace={onSelectFace} />);
+
+    const face = screen.getByRole('button', { name: 'Right face' });
+    await userEvent.click(face);
+
+    expect(onSelectFace).not.toHaveBeenCalled();
+    expect(face).not.toBeDisabled();
+  });
+
   it('marks the stickers that a previewed move would change', () => {
     render(
-      <CubeNet faces={SOLVED.faces} previewFaces={FRONT_PREVIEW.after} selectedFace="Front" disabled={false} onSelectFace={vi.fn()} />,
+      <CubeNet faces={SOLVED.faces} previewFaces={FRONT_PREVIEW.after} selectedFace="Front" busy={false} onSelectFace={vi.fn()} />,
     );
 
-    const changing = screen.getAllByRole('img', { name: /becomes/ });
+    const changing = screen.getAllByTestId('sticker').filter((sticker) => sticker.dataset.becomes);
     expect(changing).toHaveLength(12);
-    expect(within(screen.getByTestId('face-Right')).getAllByRole('img', { name: 'Red becomes White' })).toHaveLength(3);
-    expect(within(screen.getByTestId('face-Front')).queryByRole('img', { name: /becomes/ })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Right face' })).toHaveAccessibleDescription(
+      'row 1: red becomes white, red, red. row 2: red becomes white, red, red. row 3: red becomes white, red, red.',
+    );
   });
 });

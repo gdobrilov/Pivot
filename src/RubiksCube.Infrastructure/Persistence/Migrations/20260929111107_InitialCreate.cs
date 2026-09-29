@@ -16,7 +16,7 @@ namespace RubiksCube.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Facelets = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
+                    Facelets = table.Column<string>(type: "TEXT", nullable: false),
                     CreatedAtUtc = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
                     Version = table.Column<int>(type: "INTEGER", nullable: false)
                 },

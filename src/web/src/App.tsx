@@ -4,22 +4,26 @@ import { ActivityLog } from './components/ActivityLog';
 import { CubeNet } from './components/CubeNet';
 import { Logo } from './components/Logo';
 import { RotationPicker } from './components/RotationPicker';
-import { CHALLENGE_SEQUENCE, type Face } from './domain/types';
+import { CHALLENGE_SEQUENCE, type Face, type LogEntry } from './domain/types';
 import { useCubeSession } from './hooks/useCubeSession';
 import './App.css';
 
-function statusLine(turns: number, solved: boolean, previewMove?: string, previewChanges?: number): string {
-  if (previewMove !== undefined) return `Previewing ${previewMove}: ${previewChanges} stickers would change.`;
+function plural(count: number, word: string): string {
+  return `${count} ${word}${count === 1 ? '' : 's'}`;
+}
+
+function statusLine(log: readonly LogEntry[], solved: boolean): string {
+  const turns = log.filter((entry) => entry.kind === 'Rotation').length;
   if (solved && turns === 0) return 'Solved. Nothing to see here.';
-  if (solved) return `Solved again, after ${turns} ${turns === 1 ? 'turn' : 'turns'} on the record.`;
-  return `Scrambled after ${turns} ${turns === 1 ? 'turn' : 'turns'}.`;
+  if (solved) return `Solved again, after ${plural(turns, 'turn')} on the record.`;
+  return `Scrambled after ${plural(turns, 'turn')}.`;
 }
 
 export default function App() {
   const api = useMemo(() => createCubeApi(), []);
   const session = useCubeSession(api);
   const [selectedFace, setSelectedFace] = useState<Face | null>(null);
-  const { cube, log, preview, lastTurn, error, busy } = session;
+  const { cube, log, preview, lastTurn, turnCounts, error, busy } = session;
 
   return (
     <main className="app">
@@ -27,7 +31,7 @@ export default function App() {
         <Logo />
         <div>
           <h1>Pivot</h1>
-          <p className="tagline">We turn things around. Every quarter turn, on the record.</p>
+          <p className="tagline">We turn things around. Every turn, on the record.</p>
         </div>
       </header>
 
@@ -39,48 +43,64 @@ export default function App() {
 
       {cube ? (
         <div className="app__body">
-          <div>
+          <div className="app__main">
             <CubeNet
               faces={cube.faces}
               previewFaces={preview?.after}
               lastTurn={lastTurn}
+              turnCounts={turnCounts}
               selectedFace={selectedFace}
-              disabled={busy}
+              busy={busy}
               onSelectFace={(face) => setSelectedFace((current) => (current === face ? null : face))}
             />
-            <p className="status" aria-live="polite">
-              {cube.isSolved && log.length > 0 && !preview && (
-                <span key={log.length} className="badge">
-                  Solved
-                </span>
-              )}
-              {statusLine(log.length, cube.isSolved, preview?.move, preview?.changes.length)}
-              {cube.effectiveMoves.length > 0 && <span className="moves"> {cube.effectiveMoves.join(' ')}</span>}
+            <p className="status">
+              {cube.isSolved && log.some((entry) => entry.kind === 'Rotation') && <span className="badge">Solved</span>}
+              <span aria-live="polite">
+                {preview
+                  ? `Previewing ${preview.move}: ${plural(preview.changes.length, 'sticker')} would change.`
+                  : statusLine(log, cube.isSolved)}
+              </span>
+              {cube.effectiveMoves.length > 0 && <span className="moves">{cube.effectiveMoves.join(' ')}</span>}
             </p>
           </div>
 
           <div className="app__side">
             <RotationPicker
               face={selectedFace}
-              disabled={busy}
+              busy={busy}
               onHover={(face, rotation) => void session.showPreview(face, rotation)}
               onLeave={session.clearPreview}
               onRotate={(face, rotation) => void session.rotate(face, rotation)}
             />
 
             <section className="toolbar" aria-label="Actions">
-              <button type="button" disabled={busy || !cube.canUndo} onClick={() => void session.undo()}>
+              <button
+                type="button"
+                aria-disabled={busy || !cube.canUndo}
+                onClick={() => {
+                  if (!busy && cube.canUndo) void session.undo();
+                }}
+              >
                 Undo
               </button>
-              <button type="button" className="secondary" disabled={busy} onClick={() => void session.reset()}>
+              <button
+                type="button"
+                className="secondary"
+                aria-disabled={busy}
+                onClick={() => {
+                  if (!busy) void session.reset();
+                }}
+              >
                 Reset
               </button>
               <button
                 type="button"
                 className="secondary"
-                disabled={busy}
-                onClick={() => void session.rotateSequence(CHALLENGE_SEQUENCE)}
-                title="F R' U B' L D'"
+                aria-disabled={busy}
+                title="Resets the cube, then applies F R' U B' L D'"
+                onClick={() => {
+                  if (!busy) void session.resetAndRotate(CHALLENGE_SEQUENCE);
+                }}
               >
                 Run the brief's sequence
               </button>
@@ -90,7 +110,7 @@ export default function App() {
           </div>
         </div>
       ) : (
-        !error && <p className="muted">Setting up your cube…</p>
+        !error && <p className="muted">Setting up your cube...</p>
       )}
     </main>
   );

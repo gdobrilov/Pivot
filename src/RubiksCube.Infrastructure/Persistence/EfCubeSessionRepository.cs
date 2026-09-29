@@ -9,8 +9,7 @@ public sealed class EfCubeSessionRepository(RubiksDbContext dbContext) : ICubeSe
     public Task<CubeSession?> FindAsync(Guid id, CancellationToken cancellationToken = default) =>
         dbContext.Sessions.SingleOrDefaultAsync(session => session.Id == id, cancellationToken);
 
-    public async Task AddAsync(CubeSession session, CancellationToken cancellationToken = default) =>
-        await dbContext.Sessions.AddAsync(session, cancellationToken).ConfigureAwait(false);
+    public void Add(CubeSession session) => dbContext.Sessions.Add(session);
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -20,7 +19,7 @@ public sealed class EfCubeSessionRepository(RubiksDbContext dbContext) : ICubeSe
         }
         catch (DbUpdateConcurrencyException exception)
         {
-            throw new ConcurrencyConflictException("The session was modified by another request.", exception);
+            throw new ConcurrencyConflictException("The session was changed by another request.", exception);
         }
     }
 }

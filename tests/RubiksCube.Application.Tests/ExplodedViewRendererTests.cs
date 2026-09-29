@@ -43,6 +43,5 @@ public class ExplodedViewRendererTests
         Assert.Equal(expected, _renderer.Render(cube));
     }
 
-    private static string Lines(params string[] lines) =>
-        string.Concat(lines.Select(line => line + Environment.NewLine));
+    private static string Lines(params string[] lines) => string.Concat(lines.Select(line => line + "\n"));
 }

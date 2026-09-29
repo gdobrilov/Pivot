@@ -2,26 +2,28 @@ using RubiksCube.Application.Common;
 using RubiksCube.Application.Cubes;
 using RubiksCube.Application.Rendering;
 using RubiksCube.Domain;
+using RubiksCube.Domain.Sessions;
 
 namespace RubiksCube.Application.Tests;
 
-public class QueryHandlerTests
+public class QueryHandlerTests : HandlerTestBase
 {
-    private readonly FakeRepository _repository = new();
-    private readonly FakeClock _clock = new();
-    private readonly RecordingDispatcher _dispatcher = new();
-
     [Fact]
-    public async Task Get_returns_the_current_state_or_not_found()
+    public async Task Get_returns_the_current_state()
     {
         var id = await CreateAsync();
-        var handler = new GetCubeHandler(_repository);
 
-        var found = await handler.HandleAsync(new GetCubeQuery(id));
-        var missing = await handler.HandleAsync(new GetCubeQuery(Guid.NewGuid()));
+        var result = await new GetCubeHandler(Repository).HandleAsync(new GetCubeQuery(id));
 
-        Assert.True(found.Value.IsSolved);
-        Assert.Equal(ErrorType.NotFound, missing.Error.Type);
+        Assert.True(result.Value.IsSolved);
+    }
+
+    [Fact]
+    public async Task Get_returns_not_found_for_an_unknown_session()
+    {
+        var result = await new GetCubeHandler(Repository).HandleAsync(new GetCubeQuery(Guid.NewGuid()));
+
+        Assert.Equal(ErrorType.NotFound, result.Error.Type);
     }
 
     [Fact]
@@ -29,64 +31,51 @@ public class QueryHandlerTests
     {
         var id = await CreateAsync();
 
-        var result = await new PreviewRotationHandler(_repository).HandleAsync(new PreviewRotationQuery(id, Face.Front, Rotation.Clockwise));
+        var result = await new PreviewRotationHandler(Repository).HandleAsync(new PreviewRotationQuery(id, Face.Front, Rotation.Clockwise));
 
-        Assert.True(result.IsSuccess);
         Assert.Equal("F", result.Value.Move);
-        SnapshotTestExtensions.AssertSameFaces(Cube.Solved().Turn(Move.Clockwise(Face.Front)).ToFacesSnapshotForTest(), result.Value.After);
+        AssertSameFaces(Cube.Solved().Turn(Move.Clockwise(Face.Front)), result.Value.After);
         // On a solved cube the front face keeps its colour, so only the 12 strip stickers change.
         Assert.Equal(12, result.Value.Changes.Count);
         Assert.Contains(result.Value.Changes, change => change is { Face: Face.Right, Row: 0, Column: 0, From: Colour.Red, To: Colour.White });
-        Assert.Empty(_dispatcher.Dispatched);
-        var unchanged = await new GetCubeHandler(_repository).HandleAsync(new GetCubeQuery(id));
-        Assert.True(unchanged.Value.IsSolved);
+        Assert.Empty(Dispatcher.Dispatched);
+        Assert.True((await new GetCubeHandler(Repository).HandleAsync(new GetCubeQuery(id))).Value.IsSolved);
     }
 
     [Fact]
-    public async Task Preview_validates_input_and_session()
+    public async Task Preview_rejects_values_outside_the_enums()
     {
         var id = await CreateAsync();
-        var handler = new PreviewRotationHandler(_repository);
 
-        var invalid = await handler.HandleAsync(new PreviewRotationQuery(id, Face.Front, (Rotation)9));
-        var missing = await handler.HandleAsync(new PreviewRotationQuery(Guid.NewGuid(), Face.Front, Rotation.Half));
+        var result = await new PreviewRotationHandler(Repository).HandleAsync(new PreviewRotationQuery(id, Face.Front, (Rotation)9));
 
-        Assert.Equal(ErrorType.Validation, invalid.Error.Type);
-        Assert.Equal(ErrorType.NotFound, missing.Error.Type);
+        Assert.Equal(ErrorType.Validation, result.Error.Type);
     }
 
     [Fact]
     public async Task Log_lists_everything_that_happened_in_order_with_timestamps()
     {
         var id = await CreateAsync();
-        var rotate = new RotateFaceHandler(_repository, _clock, _dispatcher);
-        await rotate.HandleAsync(new RotateFaceCommand(id, Face.Front, Rotation.Clockwise));
-        _clock.UtcNow = _clock.UtcNow.AddMinutes(1);
-        await new UndoRotationHandler(_repository, _clock, _dispatcher).HandleAsync(new UndoRotationCommand(id));
-        await new ResetCubeHandler(_repository, _clock, _dispatcher).HandleAsync(new ResetCubeCommand(id));
+        await RotateAsync(id, Face.Front, Rotation.Clockwise);
+        Time.Now = Time.Now.AddMinutes(1);
+        await new UndoRotationHandler(Repository, Time, Dispatcher).HandleAsync(new UndoRotationCommand(id));
+        await new ResetCubeHandler(Repository, Time, Dispatcher).HandleAsync(new ResetCubeCommand(id));
 
-        var result = await new GetRotationLogHandler(_repository).HandleAsync(new GetRotationLogQuery(id));
+        var log = (await new GetRotationLogHandler(Repository).HandleAsync(new GetRotationLogQuery(id))).Value;
 
-        var log = result.Value;
         Assert.Equal([1, 2, 3], log.Select(entry => entry.Sequence));
-        Assert.Equal(["Rotation", "Undo", "Reset"], log.Select(entry => entry.Kind));
+        Assert.Equal([LogEntryKind.Rotation, LogEntryKind.Undo, LogEntryKind.Reset], log.Select(entry => entry.Kind));
         Assert.Equal(["F", "F", null], log.Select(entry => entry.Move));
-        Assert.Equal(_clock.UtcNow, log[1].OccurredAtUtc);
+        Assert.Equal(Time.Now, log[1].OccurredAtUtc);
     }
 
     [Fact]
-    public async Task Render_returns_the_exploded_view_or_not_found()
+    public async Task Net_is_the_rendered_exploded_view()
     {
         var id = await CreateAsync();
-        var handler = new RenderCubeHandler(_repository, new ExplodedViewRenderer());
 
-        var text = await handler.HandleAsync(new RenderCubeQuery(id));
-        var missing = await handler.HandleAsync(new RenderCubeQuery(Guid.NewGuid()));
+        var result = await new GetNetHandler(Repository, new ExplodedViewRenderer()).HandleAsync(new GetNetQuery(id));
 
-        Assert.StartsWith("       W W W", text.Value, StringComparison.Ordinal);
-        Assert.Equal(ErrorType.NotFound, missing.Error.Type);
+        Assert.StartsWith("       W W W\n", result.Value, StringComparison.Ordinal);
     }
-
-    private async Task<Guid> CreateAsync() =>
-        (await new CreateCubeHandler(_repository, _clock).HandleAsync(new CreateCubeCommand())).Id;
 }

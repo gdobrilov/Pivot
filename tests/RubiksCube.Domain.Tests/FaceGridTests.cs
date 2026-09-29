@@ -1,4 +1,3 @@
-
 namespace RubiksCube.Domain.Tests;
 
 public class FaceGridTests
@@ -11,31 +10,12 @@ public class FaceGridTests
     ]);
 
     [Fact]
-    public void Rows_and_columns_are_read_in_net_orientation()
+    public void Rows_and_columns_are_read_as_seen_from_outside()
     {
         Assert.Equal([Colour.White, Colour.Orange, Colour.Green], Grid.Row(0));
         Assert.Equal([Colour.White, Colour.Red, Colour.White], Grid.Column(0));
         Assert.Equal(Colour.Yellow, Grid[1, 2]);
-    }
-
-    [Fact]
-    public void Rotated_clockwise_turns_the_left_column_into_the_top_row()
-    {
-        var rotated = Grid.RotatedClockwise();
-
-        // Left column read bottom-up becomes the top row.
-        Assert.Equal([Colour.White, Colour.Red, Colour.White], rotated.Row(0));
-        Assert.Equal([Colour.Red, Colour.Blue, Colour.Orange], rotated.Row(1));
-        Assert.Equal([Colour.Blue, Colour.Yellow, Colour.Green], rotated.Row(2));
-        Assert.Equal(Colour.Blue, rotated[1, 1]);
-    }
-
-    [Fact]
-    public void Four_clockwise_rotations_are_the_identity()
-    {
-        var rotated = Grid.RotatedClockwise().RotatedClockwise().RotatedClockwise().RotatedClockwise();
-
-        Assert.Equal(Grid, rotated);
+        Assert.Equal("WOGRBYWRB", Grid.ToString());
     }
 
     [Fact]
@@ -46,8 +26,27 @@ public class FaceGridTests
     }
 
     [Fact]
+    public void Grids_with_the_same_stickers_are_equal()
+    {
+        var copy = FaceGrid.FromCells(3, Grid.Cells);
+
+        Assert.Equal(Grid, copy);
+        Assert.Equal(Grid.GetHashCode(), copy.GetHashCode());
+    }
+
+    [Fact]
     public void Wrong_number_of_cells_is_rejected()
     {
         Assert.Throws<ArgumentException>(() => FaceGrid.FromCells(3, [Colour.White]));
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(3)]
+    public void Positions_outside_the_grid_are_rejected(int index)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Grid.Row(index));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Grid.Column(index));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Grid[index, 0]);
     }
 }

@@ -5,5 +5,8 @@ public interface IDomainEvent
 {
     Guid SessionId { get; }
 
+    /// <summary>The log entry this event belongs to.</summary>
+    int Sequence { get; }
+
     DateTimeOffset OccurredAtUtc { get; }
 }

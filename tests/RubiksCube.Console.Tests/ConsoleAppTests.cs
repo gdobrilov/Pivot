@@ -56,5 +56,5 @@ public class ConsoleAppTests
     }
 
     private static string Lines(params string[] lines) =>
-        string.Concat(lines.Select(line => line + Environment.NewLine));
+        string.Concat(lines.Select(line => line + "\n"));
 }

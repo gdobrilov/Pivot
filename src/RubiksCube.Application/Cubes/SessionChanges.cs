@@ -20,10 +20,11 @@ internal static class SessionChanges
         }
         catch (ConcurrencyConflictException)
         {
-            return ResultError.Conflict($"Cube session '{session.Id}' was changed by another request. Reload and try again.");
+            return ResultError.Conflict($"Cube session '{session.Id}' was changed by another request at the same time. Try again.");
         }
 
-        await dispatcher.DispatchAsync(session.DequeueEvents(), cancellationToken).ConfigureAwait(false);
+        // The change is saved; a client that has gone away should not stop its events going out.
+        await dispatcher.DispatchAsync(session.DequeueEvents(), CancellationToken.None).ConfigureAwait(false);
         return session.ToSnapshot();
     }
 }

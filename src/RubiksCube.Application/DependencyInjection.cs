@@ -22,7 +22,7 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<GetCubeQuery, Result<CubeSnapshot>>, GetCubeHandler>();
         services.AddScoped<IQueryHandler<PreviewRotationQuery, Result<RotationPreview>>, PreviewRotationHandler>();
         services.AddScoped<IQueryHandler<GetRotationLogQuery, Result<IReadOnlyList<RotationLogEntrySnapshot>>>, GetRotationLogHandler>();
-        services.AddScoped<IQueryHandler<RenderCubeQuery, Result<string>>, RenderCubeHandler>();
+        services.AddScoped<IQueryHandler<GetNetQuery, Result<string>>, GetNetHandler>();
 
         return services;
     }

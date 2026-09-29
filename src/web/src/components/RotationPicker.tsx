@@ -3,14 +3,14 @@ import { ROTATIONS, ROTATION_LABELS } from '../domain/types';
 
 interface RotationPickerProps {
   face: Face | null;
-  disabled: boolean;
+  busy: boolean;
   onHover(face: Face, rotation: Rotation): void;
   onLeave(): void;
   onRotate(face: Face, rotation: Rotation): void;
 }
 
 /** Step two of a turn: how far. Hover previews it on the net. */
-export function RotationPicker({ face, disabled, onHover, onLeave, onRotate }: RotationPickerProps) {
+export function RotationPicker({ face, busy, onHover, onLeave, onRotate }: RotationPickerProps) {
   if (!face) {
     return (
       <section className="picker" aria-label="Rotation">
@@ -30,11 +30,13 @@ export function RotationPicker({ face, disabled, onHover, onLeave, onRotate }: R
           <button
             key={rotation}
             type="button"
-            disabled={disabled}
+            aria-disabled={busy}
             onMouseEnter={() => onHover(face, rotation)}
             onFocus={() => onHover(face, rotation)}
             onBlur={onLeave}
-            onClick={() => onRotate(face, rotation)}
+            onClick={() => {
+              if (!busy) onRotate(face, rotation);
+            }}
           >
             {ROTATION_LABELS[rotation]}
           </button>

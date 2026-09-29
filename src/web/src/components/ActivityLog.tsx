@@ -28,7 +28,7 @@ export function ActivityLog({ entries }: ActivityLogProps) {
       {entries.length === 0 ? (
         <p className="muted">No turns yet. Suspiciously tidy.</p>
       ) : (
-        <ol reversed>
+        <ol>
           {[...entries].reverse().map((entry) => (
             <li key={entry.sequence} className={`log__entry log__entry--${entry.kind.toLowerCase()}`}>
               <span className="log__what">{describe(entry)}</span>

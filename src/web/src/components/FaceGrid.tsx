@@ -9,7 +9,7 @@ interface FaceGridProps {
   /** Set when this face just turned: it animates into place. */
   turning?: Rotation;
   selected: boolean;
-  disabled: boolean;
+  busy: boolean;
   onSelect(face: Face): void;
 }
 
@@ -19,24 +19,46 @@ const TURN_CLASS: Record<Rotation, string> = {
   Half: 'face--turn-half',
 };
 
-export function FaceGrid({ face, stickers, previewStickers, turning, selected, disabled, onSelect }: FaceGridProps) {
+/** "Row 1: red, orange, green. Row 2: ..." with "red becomes white" while previewing. */
+function describe(stickers: FaceStickers, previewStickers?: FaceStickers): string {
+  const rows: string[] = [];
+  for (let row = 0; row * 3 < stickers.length; row++) {
+    const cells = stickers.slice(row * 3, row * 3 + 3).map((colour: Colour, column) => {
+      const next = previewStickers?.[row * 3 + column];
+      return next && next !== colour ? `${colour} becomes ${next}` : colour;
+    });
+    rows.push(`Row ${row + 1}: ${cells.join(', ')}.`);
+  }
+  return rows.join(' ').toLowerCase();
+}
+
+export function FaceGrid({ face, stickers, previewStickers, turning, selected, busy, onSelect }: FaceGridProps) {
   const classes = ['face', `face--${face.toLowerCase()}`];
   if (selected) classes.push('face--selected');
   if (turning) classes.push(TURN_CLASS[turning]);
+  const descriptionId = `face-${face}-stickers`;
 
   return (
-    <button
-      type="button"
-      className={classes.join(' ')}
-      data-testid={`face-${face}`}
-      aria-label={`${face} face`}
-      aria-pressed={selected}
-      disabled={disabled}
-      onClick={() => onSelect(face)}
-    >
-      {stickers.map((colour: Colour, index) => (
-        <Sticker key={index} colour={colour} becomes={previewStickers?.[index]} />
-      ))}
-    </button>
+    <>
+      <button
+        type="button"
+        className={classes.join(' ')}
+        data-testid={`face-${face}`}
+        aria-label={`${face} face`}
+        aria-describedby={descriptionId}
+        aria-pressed={selected}
+        aria-disabled={busy}
+        onClick={() => {
+          if (!busy) onSelect(face);
+        }}
+      >
+        {stickers.map((colour, index) => (
+          <Sticker key={index} colour={colour} becomes={previewStickers?.[index]} />
+        ))}
+      </button>
+      <span id={descriptionId} className="visually-hidden">
+        {describe(stickers, previewStickers)}
+      </span>
+    </>
   );
 }

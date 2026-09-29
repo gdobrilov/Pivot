@@ -2,7 +2,7 @@ using RubiksCube.Domain;
 
 namespace RubiksCube.Application.Snapshots;
 
-/// <summary>Nine colours per face, row by row.</summary>
+/// <summary>The stickers of each face, row by row.</summary>
 public sealed record FacesSnapshot(
     IReadOnlyList<Colour> Up,
     IReadOnlyList<Colour> Left,

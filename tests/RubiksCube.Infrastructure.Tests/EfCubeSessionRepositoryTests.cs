@@ -24,7 +24,7 @@ public sealed class EfCubeSessionRepositoryTests : IDisposable
         await using (var context = _database.CreateContext())
         {
             var repository = new EfCubeSessionRepository(context);
-            await repository.AddAsync(session);
+            repository.Add(session);
             await repository.SaveChangesAsync();
         }
 
@@ -96,9 +96,10 @@ public sealed class EfCubeSessionRepositoryTests : IDisposable
         var id = await SeedAsync();
         await using (var context = _database.CreateContext())
         {
-            var session = (await context.Sessions.SingleAsync(s => s.Id == id))!;
+            var repository = new EfCubeSessionRepository(context);
+            var session = (await repository.FindAsync(id))!;
             session.Rotate(Move.AntiClockwise(Face.Left), T0);
-            await context.SaveChangesAsync();
+            await repository.SaveChangesAsync();
         }
 
         await using var raw = _database.CreateContext();
@@ -109,6 +110,14 @@ public sealed class EfCubeSessionRepositoryTests : IDisposable
         Assert.Equal(["Rotation:Left:AntiClockwise"], kinds);
     }
 
+    [Fact]
+    public void The_migration_matches_the_model()
+    {
+        using var context = _database.CreateContext();
+
+        Assert.False(context.Database.HasPendingModelChanges());
+    }
+
     public void Dispose() => _database.Dispose();
 
     private async Task<Guid> SeedAsync()
@@ -116,7 +125,7 @@ public sealed class EfCubeSessionRepositoryTests : IDisposable
         var session = CubeSession.Create(T0);
         await using var context = _database.CreateContext();
         var repository = new EfCubeSessionRepository(context);
-        await repository.AddAsync(session);
+        repository.Add(session);
         await repository.SaveChangesAsync();
         return session.Id;
     }

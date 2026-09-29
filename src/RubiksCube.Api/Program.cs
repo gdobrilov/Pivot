@@ -16,21 +16,16 @@ builder.Services
     .AddProblemDetails()
     .AddOpenApi();
 
-// Enums travel as names ("Front", "Clockwise"). [ApiController] turns bad input into 400 problem details.
+// Enums travel as names only ("Front", "Clockwise"); numbers are rejected. [ApiController] turns bad input into 400.
 builder.Services
     .AddControllers()
-    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false)));
 
 builder.Services.AddHealthChecks().AddDbContextCheck<RubiksDbContext>();
 
-// Origins allowed to call the API from a browser, e.g. the Vite dev server. Empty means none.
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
-builder.Services.AddCors(options => options.AddDefaultPolicy(
-    policy => policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()));
-
 var app = builder.Build();
 
-// Migrate at startup so a fresh checkout just runs.
+// Migrate at startup so a fresh checkout just runs. With several instances this would move to the deploy pipeline.
 using (var scope = app.Services.CreateScope())
 {
     await scope.ServiceProvider.GetRequiredService<RubiksDbContext>().Database.MigrateAsync();
@@ -39,9 +34,7 @@ using (var scope = app.Services.CreateScope())
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 
-app.UseCors();
-
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("ApiDocs:Enabled"))
 {
     app.MapOpenApi();
     app.MapScalarApiReference(options => options.WithTitle("Pivot API"));

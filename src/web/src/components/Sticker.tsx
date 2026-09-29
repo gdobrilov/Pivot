@@ -7,18 +7,21 @@ interface StickerProps {
   becomes?: Colour;
 }
 
+/** Decorative: the face describes its stickers to screen readers. */
 export function Sticker({ colour, becomes }: StickerProps) {
   const changing = becomes !== undefined && becomes !== colour;
   const shown = changing ? becomes : colour;
   return (
-    <div
+    <span
       className={changing ? 'sticker sticker--changing' : 'sticker'}
-      style={{ backgroundColor: COLOUR_HEX[shown] }}
-      role="img"
-      aria-label={changing ? `${colour} becomes ${becomes}` : colour}
+      style={{ backgroundColor: COLOUR_HEX[shown], color: shown === 'Blue' ? '#fff' : '#111' }}
+      data-testid="sticker"
+      data-colour={colour}
+      data-becomes={changing ? becomes : undefined}
+      aria-hidden="true"
       title={changing ? `${colour} → ${becomes}` : colour}
     >
-      <span className="sticker__symbol">{COLOUR_SYMBOL[shown]}</span>
-    </div>
+      {COLOUR_SYMBOL[shown]}
+    </span>
   );
 }

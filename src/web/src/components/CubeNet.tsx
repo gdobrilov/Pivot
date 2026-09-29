@@ -1,37 +1,35 @@
 import type { Face, FacesSnapshot } from '../domain/types';
 import { FACES, faceKey } from '../domain/types';
-import type { AnimatedTurn } from '../hooks/useCubeSession';
+import type { AnimatedTurn, TurnCounts } from '../hooks/useCubeSession';
 import { FaceGrid } from './FaceGrid';
 
 interface CubeNetProps {
   faces: FacesSnapshot;
   previewFaces?: FacesSnapshot;
   lastTurn?: AnimatedTurn | null;
+  turnCounts?: TurnCounts;
   selectedFace: Face | null;
-  disabled: boolean;
+  busy: boolean;
   onSelectFace(face: Face): void;
 }
 
 /** The net from the brief (U on top, L F R B, D below). Click a face to pick it. */
-export function CubeNet({ faces, previewFaces, lastTurn, selectedFace, disabled, onSelectFace }: CubeNetProps) {
+export function CubeNet({ faces, previewFaces, lastTurn, turnCounts = {}, selectedFace, busy, onSelectFace }: CubeNetProps) {
   return (
-    <div className="net" aria-label="Cube net">
-      {FACES.map((face) => {
-        const turning = lastTurn?.face === face ? lastTurn : null;
-        return (
-          <FaceGrid
-            // A new key remounts the turned face, so it starts the turn with its new colours.
-            key={turning ? `${face}-${turning.id}` : face}
-            face={face}
-            stickers={faces[faceKey(face)]}
-            previewStickers={previewFaces?.[faceKey(face)]}
-            turning={turning?.rotation}
-            selected={selectedFace === face}
-            disabled={disabled}
-            onSelect={onSelectFace}
-          />
-        );
-      })}
+    <div className="net" role="group" aria-label="Cube net">
+      {FACES.map((face) => (
+        <FaceGrid
+          // The key changes only when this face turns, so it remounts and plays its turn with the new colours.
+          key={`${face}-${turnCounts[face] ?? 0}`}
+          face={face}
+          stickers={faces[faceKey(face)]}
+          previewStickers={previewFaces?.[faceKey(face)]}
+          turning={lastTurn?.face === face ? lastTurn.rotation : undefined}
+          selected={selectedFace === face}
+          busy={busy}
+          onSelect={onSelectFace}
+        />
+      ))}
     </div>
   );
 }

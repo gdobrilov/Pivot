@@ -5,7 +5,7 @@ using RubiksCube.Application.Snapshots;
 
 namespace RubiksCube.Application.Cubes;
 
-public sealed class ResetCubeHandler(ICubeSessionRepository repository, IClock clock, IDomainEventDispatcher dispatcher)
+public sealed class ResetCubeHandler(ICubeSessionRepository repository, TimeProvider timeProvider, IDomainEventDispatcher dispatcher)
     : ICommandHandler<ResetCubeCommand, Result<CubeSnapshot>>
 {
     public async Task<Result<CubeSnapshot>> HandleAsync(ResetCubeCommand command, CancellationToken cancellationToken = default)
@@ -17,7 +17,7 @@ public sealed class ResetCubeHandler(ICubeSessionRepository repository, IClock c
             return ResultError.SessionNotFound(command.SessionId);
         }
 
-        session.Reset(clock.UtcNow);
+        session.Reset(timeProvider.GetUtcNow());
         return await SessionChanges.CommitAsync(session, repository, dispatcher, cancellationToken).ConfigureAwait(false);
     }
 }

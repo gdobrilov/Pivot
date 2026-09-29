@@ -1,6 +1,6 @@
 namespace RubiksCube.Domain;
 
-/// <summary>The stickers of one face, N×N, as seen from outside: row 0 is the top, column 0 is the left.</summary>
+/// <summary>The stickers of one face, NxN, as seen from outside: row 0 is the top, column 0 is the left.</summary>
 public sealed class FaceGrid : IEquatable<FaceGrid>
 {
     private readonly Colour[] _cells;
@@ -50,22 +50,7 @@ public sealed class FaceGrid : IEquatable<FaceGrid>
     public IReadOnlyList<Colour> Column(int column)
     {
         ValidateIndex(column, nameof(column));
-        return Enumerable.Range(0, Size).Select(row => _cells[(row * Size) + column]).ToArray();
-    }
-
-    /// <summary>(row, column) moves to (column, Size − 1 − row): the left column, read bottom-up, becomes the top row.</summary>
-    public FaceGrid RotatedClockwise()
-    {
-        var rotated = new Colour[_cells.Length];
-        for (var row = 0; row < Size; row++)
-        {
-            for (var column = 0; column < Size; column++)
-            {
-                rotated[(column * Size) + (Size - 1 - row)] = _cells[(row * Size) + column];
-            }
-        }
-
-        return new FaceGrid(Size, rotated);
+        return Array.AsReadOnly(Enumerable.Range(0, Size).Select(row => _cells[(row * Size) + column]).ToArray());
     }
 
     public bool Equals(FaceGrid? other) => other is not null && Size == other.Size && _cells.AsSpan().SequenceEqual(other._cells);

@@ -74,9 +74,14 @@ h2 {
   margin-top: 24px;
 }
 
+.app__main,
+.app__side {
+  min-width: 0;
+}
+
 @media (max-width: 900px) {
   .app__body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -87,8 +92,9 @@ h2 {
   grid-template-rows: repeat(3, auto);
   gap: 8px;
   justify-content: start;
+  position: relative;
   overflow-x: auto;
-  padding: 8px;
+  padding: 12px;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -106,7 +112,7 @@ h2 {
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
-.face:hover:not(:disabled) {
+.face:hover:not([aria-disabled='true']) {
   border-color: var(--accent);
 }
 
@@ -115,8 +121,11 @@ h2 {
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-.face:disabled {
-  cursor: progress;
+/* Wide enough for the whole net: let a turning face swing past the edge without scrollbars. */
+@media (min-width: 640px) {
+  .net {
+    overflow: visible;
+  }
 }
 
 .face--up { grid-column: 2; grid-row: 1; }
@@ -155,10 +164,9 @@ h2 {
   to { filter: brightness(0.85); }
 }
 
-.sticker__symbol {
+.sticker {
   font-size: 0.7rem;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.45);
 }
 
 .status {
@@ -228,7 +236,7 @@ button {
   transition: transform 80ms ease;
 }
 
-button:active:not(:disabled) {
+button:active:not([aria-disabled='true']) {
   transform: translateY(1px);
 }
 
@@ -237,14 +245,29 @@ button.secondary {
   color: var(--accent);
 }
 
-button:disabled {
+button[aria-disabled='true'] {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
+.face[aria-disabled='true'] {
+  opacity: 1;
+  cursor: progress;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .log ol {
   margin: 0;
-  padding-left: 28px;
+  padding: 0;
+  list-style: none;
   max-height: 320px;
   overflow-y: auto;
 }

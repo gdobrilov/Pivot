@@ -1,5 +1,5 @@
 # docker compose up --build        -> web on http://localhost:3000, API on http://localhost:8080
-# docker compose run --rm console  -> prints the challenge output (add moves as arguments)
+# docker compose run --rm console  -> prints the brief's result (add moves as arguments)
 services:
   api:
     build:
@@ -7,10 +7,9 @@ services:
       dockerfile: src/RubiksCube.Api/Dockerfile
     image: rubiks-api
     environment:
-      ASPNETCORE_ENVIRONMENT: Development   # enables /scalar API docs; not needed for the endpoints themselves
-      ConnectionStrings__Rubiks: "Data Source=/app/data/rubiks.db"
+      ApiDocs__Enabled: "true"
     volumes:
-      - rubiks-data:/app/data               # the SQLite database survives container restarts
+      - rubiks-data:/app/data
     ports:
       - "8080:8080"
 

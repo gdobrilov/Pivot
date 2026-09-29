@@ -1,13 +1,11 @@
 namespace RubiksCube.Domain.Geometry;
 
-/// <summary>After applying it, position i holds what was at position this[i].</summary>
+/// <summary>After applying it, position i holds what was at position source[i].</summary>
 internal sealed class Permutation
 {
     private readonly int[] _source;
 
     private Permutation(int[] source) => _source = source;
-
-    public int this[int index] => _source[index];
 
     /// <summary>Positions not listed stay where they are.</summary>
     public static Permutation FromMappings(int length, IEnumerable<(int Target, int Source)> mappings)
@@ -44,11 +42,17 @@ internal sealed class Permutation
         return new Permutation(composed);
     }
 
-    public void Apply<T>(ReadOnlySpan<T> source, Span<T> target)
+    public Colour[] Apply(Colour[] stickers)
     {
+        var result = new Colour[stickers.Length];
         for (var i = 0; i < _source.Length; i++)
         {
-            target[i] = source[_source[i]];
+            result[i] = stickers[_source[i]];
         }
+
+        return result;
     }
+
+    /// <summary>True when every position appears exactly once as a source. For tests.</summary>
+    internal bool IsBijection() => _source.Order().SequenceEqual(Enumerable.Range(0, _source.Length));
 }

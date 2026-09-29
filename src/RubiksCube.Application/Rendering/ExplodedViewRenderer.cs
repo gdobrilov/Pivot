@@ -3,7 +3,7 @@ using RubiksCube.Domain;
 
 namespace RubiksCube.Application.Rendering;
 
-/// <summary>The exploded view: U on top, then L F R B, then D, one letter per sticker.</summary>
+/// <summary>The net: U on top, then L F R B, then D, one letter per sticker. Lines end in \n on every OS.</summary>
 public sealed class ExplodedViewRenderer : ICubeRenderer
 {
     private const string FaceGap = "  ";
@@ -20,7 +20,7 @@ public sealed class ExplodedViewRenderer : ICubeRenderer
         AppendFace(builder, cube, Face.Up, indent);
         for (var row = 0; row < cube.Size; row++)
         {
-            builder.AppendJoin(FaceGap, MiddleRow.Select(face => RenderRow(cube, face, row))).AppendLine();
+            builder.AppendJoin(FaceGap, MiddleRow.Select(face => RenderRow(cube, face, row))).Append('\n');
         }
 
         AppendFace(builder, cube, Face.Down, indent);
@@ -32,7 +32,7 @@ public sealed class ExplodedViewRenderer : ICubeRenderer
     {
         for (var row = 0; row < cube.Size; row++)
         {
-            builder.Append(indent).Append(RenderRow(cube, face, row)).AppendLine();
+            builder.Append(indent).Append(RenderRow(cube, face, row)).Append('\n');
         }
     }
 

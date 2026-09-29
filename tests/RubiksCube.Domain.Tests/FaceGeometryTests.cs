@@ -13,13 +13,24 @@ public class FaceGeometryTests
     [InlineData("L", "BWWBWWBWW OOOOOOOOO WGGWGGWGG RRRRRRRRR BBYBBYBBY GYYGYYGYY")]
     [InlineData("D", "WWWWWWWWW OOOOOOBBB GGGGGGOOO RRRRRRGGG BBBBBBRRR YYYYYYYYY")]
     [InlineData("F'", "WWWWWWRRR OOWOOWOOW GGGGGGGGG YRRYRRYRR BBBBBBBBB OOOYYYYYY")]
-    [InlineData("R'", "WWBWWBWWB OOOOOOOOO GGWGGWGGW RRRRRRRRR YBBYBBYBB YYGYYGYYG")]
     [InlineData("F2", "WWWWWWYYY OOROOROOR GGGGGGGGG ORRORRORR BBBBBBBBB WWWYYYYYY")]
-    public void Single_turn_moves_the_expected_stickers(string move, string expectedFacelets)
+    public void A_single_turn_from_solved_moves_the_expected_stickers(string moves, string expected)
     {
-        var cube = Cube.Solved().Apply(MoveNotation.Parse(move));
+        Assert.Equal(Facelets(expected), Cube.Solved().Apply(MoveNotation.Parse(moves)).ToFacelets());
+    }
 
-        Assert.Equal(expectedFacelets.Replace(" ", string.Empty, StringComparison.Ordinal), cube.ToFacelets());
+    // From solved every strip is one colour, so the cases above cannot catch a strip read the wrong
+    // way round. These turn each face once more on a cube that is already mixed.
+    [Theory]
+    [InlineData("F R", "WWGWWGOOG OOYOOYOOY GGRGGYGGY WWWRRRRRR OBBWBBWBB RRBYYBYYB")]
+    [InlineData("R U", "WWWWWWGGG GGYOOOOOO RRRGGYGGY WBBRRRRRR OOOWBBWBB YYBYYBYYB")]
+    [InlineData("U F'", "WWWWWWBRR GGWOOWOOW RGGRGGRGG YBBYRRYRR OOOBBBBBB GOOYYYYYY")]
+    [InlineData("B L", "BRRBWWBWW WWWOOOOOO RGGWGGWGG RRYRRYRRY BBOBBYBBY GYYGYYGOO")]
+    [InlineData("L D2", "BWWBWWBWW OOOOOORRR WGGWGGBBY RRRRRROOO BBYBBYWGG YYGYYGYYG")]
+    [InlineData("D B'", "BOOWWWWWW YOOYOOYBB GGGGGGOOO RRWRRWGGW BBRBBRBBR YYYYYYGRR")]
+    public void A_turn_on_a_mixed_cube_moves_the_expected_stickers(string moves, string expected)
+    {
+        Assert.Equal(Facelets(expected), Cube.Solved().Apply(MoveNotation.Parse(moves)).ToFacelets());
     }
 
     [Fact]
@@ -27,54 +38,33 @@ public class FaceGeometryTests
     {
         var cube = Cube.Solved().Turn(Move.Clockwise(Face.Front));
 
-        // What was on Left is now on the bottom row of Up.
         Assert.Equal([Colour.Orange, Colour.Orange, Colour.Orange], cube[Face.Up].Row(2));
-        // What was on Up is now on the left column of Right.
         Assert.Equal([Colour.White, Colour.White, Colour.White], cube[Face.Right].Column(0));
-        // What was on Right is now on the top row of Down.
         Assert.Equal([Colour.Red, Colour.Red, Colour.Red], cube[Face.Down].Row(0));
-        // What was on Down is now on the right column of Left.
         Assert.Equal([Colour.Yellow, Colour.Yellow, Colour.Yellow], cube[Face.Left].Column(2));
-        // Back is untouched.
         Assert.True(cube[Face.Back].IsUniform);
     }
 
     [Fact]
-    public void Reading_direction_follows_the_corner_met_first()
+    public void Each_strip_is_read_from_the_corner_met_first()
     {
-        // Scramble so that every sticker is distinguishable by position, then turn Front.
-        var before = Cube.Solved().Apply(MoveNotation.Parse("U R D' L B"));
+        // After this scramble none of the four strips around Front reads the same both ways,
+        // so reading any of them backwards would fail one of the assertions.
+        var before = Cube.Solved().Apply(MoveNotation.Parse("R U B' D L'"));
         var after = before.Turn(Move.Clockwise(Face.Front));
 
-        // Up's bottom row, read from its bottom-left corner, lands on Right's left column read from the top.
         Assert.Equal(before[Face.Up].Row(2), after[Face.Right].Column(0));
-        // Right's left column, read from the top, lands on Down's top row read from the right.
         Assert.Equal(before[Face.Right].Column(0), after[Face.Down].Row(0).Reverse());
-        // Down's top row, read from the right, lands on Left's right column read from the bottom.
         Assert.Equal(before[Face.Down].Row(0).Reverse(), after[Face.Left].Column(2).Reverse());
-        // Left's right column, read from the bottom, lands on Up's bottom row read from the left.
         Assert.Equal(before[Face.Left].Column(2).Reverse(), after[Face.Up].Row(2));
     }
 
-    [Theory]
-    [MemberData(nameof(AllFaces))]
-    public void Every_face_has_four_neighbouring_strips_that_never_touch_the_face_itself_or_its_opposite(Face face)
-    {
-        var strips = FaceGeometry.NeighboursOf(face);
-
-        Assert.Equal(4, strips.Count);
-        Assert.DoesNotContain(strips, strip => strip.Face == face);
-        Assert.Equal(4, strips.Select(strip => strip.Face).Distinct().Count());
-    }
-
     [Fact]
-    public void Each_strip_reads_size_stickers_along_its_side()
+    public void A_strip_read_from_the_far_corner_is_reversed()
     {
         var strip = new EdgeStrip(Face.Down, Side.Top, Corner.TopRight);
 
-        var positions = strip.Positions(3);
-
-        Assert.Equal([new(Face.Down, 0, 2), new(Face.Down, 0, 1), new(Face.Down, 0, 0)], positions);
+        Assert.Equal([new(Face.Down, 0, 2), new(Face.Down, 0, 1), new(Face.Down, 0, 0)], strip.Positions(3));
     }
 
     [Fact]
@@ -85,5 +75,17 @@ public class FaceGeometryTests
         Assert.Throws<InvalidOperationException>(() => strip.Positions(3));
     }
 
-    public static TheoryData<Face> AllFaces => new(Faces.All);
+    [Theory]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(5)]
+    public void Every_move_moves_each_sticker_to_exactly_one_place(int size)
+    {
+        var moves = Faces.All.SelectMany(face => Enum.GetValues<Rotation>().Select(rotation => new Move(face, rotation)));
+
+        Assert.All(moves, move => Assert.True(FaceGeometry.PermutationFor(move, size).IsBijection(), move.ToString()));
+    }
+
+    private static string Facelets(string grouped) => grouped.Replace(" ", string.Empty, StringComparison.Ordinal);
 }

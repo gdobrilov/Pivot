@@ -1,137 +1,177 @@
 # Pivot
 
-**We turn things around.** Pivot is a fictional startup with exactly one product: a cube you can turn.
-This repository is the entire company.
+**We turn things around.** Pivot is a pretend startup with one product: a cube you can turn, where every turn goes
+on the record. Under the name it is a Rubik's cube simulator: it starts solved, oriented like
+[rubiks-cube-solver.com](https://rubiks-cube-solver.com/) (green front, red right, white up), and can turn any face.
 
-The cube starts solved and oriented like [rubiks-cube-solver.com](https://rubiks-cube-solver.com/):
-green front, red right, white up. Every quarter turn goes on the record.
+It has three ways in: a console app that prints the result the brief asks for, a Web API, and a React front end.
 
-## Quick start
+## Prerequisites
 
-You need the free [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) and nothing else.
-
-```bash
-dotnet run --project src/RubiksCube.Console
-```
-
-That prints the solved cube, applies the sequence from the brief (**F R' U B' L D'**) and prints the result:
-
-```
-       R O G
-       B W W
-       B B B
-G Y Y  O R R  Y B O  Y B W
-O O G  O G W  R R W  O B Y
-B G O  W W W  O Y R  Y Y W
-       G G B
-       R Y R
-       R G G
-```
-
-It matches the picture in the brief tile for tile. `dotnet test` runs everything.
-
-## What is in the box
-
-| Project | What it does |
-|---|---|
-| `src/RubiksCube.Domain` | The cube, the geometry of a turn, and `CubeSession` (a cube plus its log). No dependencies. |
-| `src/RubiksCube.Application` | One handler per command/query, the ports they need, read models. |
-| `src/RubiksCube.Infrastructure` | EF Core + SQLite, migration, clock, in-process event dispatcher. |
-| `src/RubiksCube.Console` | **The deliverable.** Prints the net before and after a sequence. |
-| `src/RubiksCube.Api` | Web API: sessions, turns, preview, audit log, undo. OpenAPI docs at `/scalar`. |
-| `src/web` | React + TypeScript. Click a face, pick how far, see the preview, turn it. |
-| `tests/*` | xUnit per layer (domain, handlers, EF on SQLite, HTTP end to end, console) and Vitest for the UI. |
-
-Everything is free and open source. No paid tools.
-
-## Running the rest
-
-**API** (<http://localhost:5000>, docs at `/scalar`, health at `/health`):
-
-```bash
-dotnet run --project src/RubiksCube.Api
-```
-
-| Method | Route | What |
+| Tool | Version | Needed for |
 |---|---|---|
-| `POST` | `/api/cubes` | New solved cube. `201` + `Location`. |
-| `GET` | `/api/cubes/{id}` | Current state. |
-| `GET` | `/api/cubes/{id}/preview?face=Right&rotation=AntiClockwise` | What the turn would do. Nothing stored. |
-| `POST` | `/api/cubes/{id}/rotations` | `{ "face": "Front", "rotation": "Clockwise" }`. Rotation: `Clockwise`, `AntiClockwise`, `Half`. |
-| `GET` | `/api/cubes/{id}/rotations` | The log: every turn, undo and reset, with UTC time. |
-| `POST` | `/api/cubes/{id}/rotations/undo` | Undo the last effective turn. Recorded, not deleted. |
+| [.NET SDK](https://dotnet.microsoft.com/download/dotnet/10.0) | 10.0 | Everything .NET: console, API, tests |
+| [Node.js](https://nodejs.org/) | 22 or 24 LTS (20.19 or later works) | The web front end only |
+| [Docker](https://docs.docker.com/get-docker/) | Any recent version with Compose | Optional |
+
+Everything is free. The commands below work in PowerShell, Command Prompt, macOS and Linux shells, run from the
+repository root. Check the tools with `dotnet --version` and `node --version`.
+
+## Build and run
+
+1. Get the code and build it:
+
+   ```bash
+   git clone https://github.com/gdobrilov/Pivot.git
+   cd Pivot
+   dotnet build
+   ```
+
+2. Run the console app. With no arguments it applies the sequence from the brief, F R' U B' L D':
+
+   ```bash
+   dotnet run --project src/RubiksCube.Console
+   ```
+
+   It prints the solved cube and then the final state, which matches the picture in the brief sticker for sticker:
+
+   ```
+   Final state after F R' U B' L D':
+          R O G
+          B W W
+          B B B
+   G Y Y  O R R  Y B O  Y B W
+   O O G  O G W  R R W  O B Y
+   B G O  W W W  O Y R  Y Y W
+          G G B
+          R Y R
+          R G G
+   ```
+
+   Your own sequence (a face letter, `'` for anti-clockwise, `2` for 180°), and the cube after every move:
+
+   ```bash
+   dotnet run --project src/RubiksCube.Console -- "R U R' U'"
+   dotnet run --project src/RubiksCube.Console -- --steps
+   ```
+
+   Invalid input prints what was wrong and exits with code 1.
+
+3. Run the tests:
+
+   ```bash
+   dotnet test
+   ```
+
+   That covers all the .NET projects. The front end has its own tests (step 5).
+
+4. Start the API. It listens on <http://localhost:5080> and creates and migrates a SQLite file, `rubiks.db`, on
+   first start:
+
+   ```bash
+   dotnet run --project src/RubiksCube.Api
+   ```
+
+   With `dotnet run` it runs in Development, so API docs are at <http://localhost:5080/scalar>. `/health` checks the
+   database.
+
+5. In a second terminal, start the front end:
+
+   ```bash
+   cd src/web
+   npm install
+   npm run dev
+   ```
+
+   Open <http://localhost:5173>. Vite forwards `/api` to the API on port 5080. Click a face, hover a rotation to see
+   which stickers would change, click to turn it. The page remembers its cube, so a reload picks up where you left off.
+   `npm test`, `npm run lint`, `npm run typecheck` and `npm run build` are there too.
+
+Visual Studio or Rider: open `RubiksCube.sln` and run `RubiksCube.Console` or `RubiksCube.Api`.
+
+## Docker (optional)
+
+Nothing above needs Docker. If you prefer containers:
+
+```bash
+docker compose up --build
+```
+
+That starts the web front end on <http://localhost:3000> and the API on <http://localhost:8080> (docs at `/scalar`).
+The SQLite file lives in a named volume, so it survives restarts; `docker compose down -v` deletes it.
+
+The console app on its own:
+
+```bash
+docker compose run --rm console
+docker compose run --rm console "R U R' U'"
+```
+
+## API
+
+| Method | Route | What it does |
+|---|---|---|
+| `POST` | `/api/cubes` | Creates a solved cube. `201` with a `Location` header. |
+| `GET` | `/api/cubes/{id}` | The current state. |
+| `GET` | `/api/cubes/{id}/preview?face=Right&rotation=AntiClockwise` | What a turn would do. Nothing is saved. |
+| `POST` | `/api/cubes/{id}/rotations` | Turns a face. Body: `{ "face": "Front", "rotation": "Clockwise" }`. |
+| `GET` | `/api/cubes/{id}/rotations` | The log: every turn, undo and reset, with its time in UTC. |
+| `POST` | `/api/cubes/{id}/undo` | Undoes the last turn. The undo is logged; nothing is deleted. |
 | `POST` | `/api/cubes/{id}/reset` | Back to solved. The log stays. |
-| `GET` | `/api/cubes/{id}/net` | The net as `text/plain`. |
+| `GET` | `/api/cubes/{id}/net` | The net as plain text, the same as the console prints. |
 
-Errors are RFC 9457 problem details: `400` bad input or nothing to undo, `404` unknown cube, `409` two requests
-changed the same cube at once. The SQLite file (`rubiks.db`) is created and migrated on first start.
-
-**Web** (start the API first):
-
-```bash
-cd src/web
-npm install
-npm run dev        # http://localhost:5173, proxies /api to the API
-```
-
-Also `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`.
-
-**Docker** (optional; nothing above needs it):
-
-```bash
-docker compose up --build          # web on :3000, API on :8080, SQLite in a volume
-docker compose run --rm console    # the brief's output; add moves as arguments
-```
-
-**Console options:** `-- --steps` prints the cube after every move; `-- "R U R' U'"` applies your own sequence
-(face letter, `'` for anti-clockwise, `2` for 180°). Invalid input prints why and exits with 1.
-
-## Tests
-
-| Suite | Proves |
-|---|---|
-| Domain | Every single turn against the solver site; the brief's picture; four turns = identity, `X X'` = identity, `X2` = `X X`; the reading-direction rule; the model has no hard-coded 3; log, undo and reset semantics. |
-| Application | Each handler with fakes: validation, not found, conflict; events go out only after a successful save. |
-| Infrastructure | The real EF mapping on in-memory SQLite built by the migration: round trip, concurrency conflict, readable columns. |
-| Console | Output captured: the brief's result, `--steps`, exit code and usage on bad input. |
-| Api | HTTP end to end in-process: statuses, `Location`, enum names, the brief's sequence, preview, log, problem details. |
-| web | Net, face selection, preview highlighting, picker, log, API client, session hook. |
-
-CI runs the .NET build and tests on Windows and Linux, the web checks, and builds the Docker images.
+Faces are `Up`, `Left`, `Front`, `Right`, `Back`, `Down`; rotations are `Clockwise`, `AntiClockwise`, `Half`. Errors
+come back as RFC 9457 problem details: `400` for missing or invalid input, `404` for an unknown cube, `409` when there
+is nothing to undo or two requests change the same cube at the same moment.
 
 ## How it is built
 
 ```
- Console ─┐                                   ┌─ Infrastructure (EF Core/SQLite, clock, dispatcher)
-          ├─► Application ──► Domain ◄────────┘
-     API ─┘   (commands, queries, ports)
-     web talks to the API over HTTP only
+ Console ──────────────► Application ──► Domain
+ API (composition root) ─► Application
+                        └► Infrastructure ──► Application
+ web ── HTTP ──► API
 ```
 
-**The cube.** Immutable: a turn returns a new cube. Each face is a `FaceGrid` (rows and columns as seen from
-outside). A turn is a permutation of the 54 stickers, built once per move from a table in `FaceGeometry` that says,
-in words, which four neighbouring strips a face drags round and from which corner each is read. Anti-clockwise is
-the inverse permutation, 180° is the clockwise one twice. There is no `if` per face.
+**Domain** is plain C# with no dependencies. `Cube` is immutable: a turn returns a new cube. Each face is a
+`FaceGrid` of rows and columns as seen from outside. A turn is a rearrangement (a permutation) of all the stickers,
+worked out once per move from a table in `FaceGeometry`. For each face the table names the four strips of neighbouring
+stickers that move with it, in words ("Up's bottom row, read from the bottom-left"), so there is no special case per
+face. Anti-clockwise is the reverse rearrangement and 180° is the clockwise one applied twice.
 
-**The session.** `CubeSession` holds the cube and an append-only log (`Rotation`, `Undo`, `Reset`). Undo applies the
-inverse of the last effective move and writes a log line; nothing is deleted. The log is the audit trail. Every
-change raises an event that is dispatched after the change is saved.
+`CubeSession` is a cube plus an append-only log of rotations, undos and resets. Undo applies the inverse of the last
+move still in effect and adds a log line, so the log doubles as an audit trail. Each change raises an event.
 
-**The layers.** Application defines each use case as a command or query with one handler, and the ports it needs
-(`ICubeSessionRepository`, `IClock`, `IDomainEventDispatcher`). Expected failures come back as a `Result`, mapped to a
-status code in one place. Infrastructure maps the aggregate with Fluent configuration only: the cube as a facelet
-string, the log as an owned table in the same transaction, `Version` as the concurrency token. The dispatcher is
-in-process; a message bus would replace it without the handlers changing, and "save, then dispatch" is where an
-outbox would go.
+**Application** holds the use cases, one handler per command or query, and the interfaces it needs
+(`ICubeSessionRepository`, `IDomainEventDispatcher`, plus .NET's `TimeProvider`). Expected failures come back as a
+`Result` rather than exceptions and become status codes in one place in the API. Command handlers save first and only
+then pass the events on.
 
-**Decisions worth a sentence.** Structured input (`face`, `rotation`) is the API contract; notation is for the console
-and tests. Preview is a query: `Turn` without saving. `Move` is a `readonly record struct` (a small value used as a
-key); `Cube` is a class (large, shared by reference); `CubeSession` is an entity. SQLite because it is a real
-relational database with no install; tests use in-memory SQLite through the same migration, not the EF InMemory
-provider. No MediatR, FluentAssertions or AutoMapper: all three went commercial, and the replacements are a few dozen
-lines. Nullable, warnings as errors, latest recommended analyzers, central package versions.
+**Infrastructure** stores sessions with EF Core and SQLite: the cube as a string of colour letters, the log as its own
+table written in the same transaction, and a version number that stops two simultaneous writes from both winning.
+Events go to listeners in the same process; today the only one writes to the log file.
 
-**Deliberately not here.** Whole-cube rotations and slice moves (`Move` would gain a layer depth; the table would not
-change). Other cube sizes in the API and UI (the model supports them; the brief is 3x3). Users and authentication
-(nothing in the brief needs them; "who" would be one more column on the log). Brokers, outbox, microservices (see
-above for where they would go).
+**Web** is React and TypeScript. The server is the only place that knows how a cube turns; the page asks it for the
+state, for previews and for the log.
+
+## Choices I would defend
+
+- Structured input (`face`, `rotation`) is the API contract because that is what a user picks. Notation such as
+  `F R' U2` is for the console and the tests.
+- `Move` is a `readonly record struct`: small, no identity, used as a dictionary key. `Cube` is a class because it is
+  larger and shared, and `CubeSession` is an entity.
+- SQLite gives real relational storage with nothing to install. Tests run against in-memory SQLite built by the same
+  migration, not EF's InMemory provider, which does not behave like a database.
+- No MediatR, FluentAssertions or AutoMapper. All three now need a commercial licence, and what they would replace
+  here is a few dozen lines.
+- The build treats warnings as errors with the .NET 10 recommended analysers, and package versions live in one file.
+
+## Left out on purpose
+
+- Turning the whole cube and middle-slice moves. `Move` would gain a layer depth; the geometry table would not change.
+- Other cube sizes in the API and UI. The domain has no hard-coded 3 and its tests turn 2x2 and 4x4 cubes, but the
+  brief is about 3x3.
+- Users, authentication and rate limiting. Nothing in the brief needs them; "who" would be one more column in the log.
+- A message broker, an outbox or separate services. Events are dispatched after the save in the same process; that
+  dispatch is where an outbox would go if they ever had to leave it.
+- Migrating at startup suits a single instance. With several, the migration would move to the deployment pipeline.

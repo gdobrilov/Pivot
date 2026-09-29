@@ -1,7 +1,7 @@
 namespace RubiksCube.Domain;
 
 /// <summary>A side of a face, as seen looking straight at that face.</summary>
-public enum Side
+internal enum Side
 {
     Top,
     Right,

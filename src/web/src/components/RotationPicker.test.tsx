@@ -4,7 +4,7 @@ import { RotationPicker } from './RotationPicker';
 
 describe('RotationPicker', () => {
   it('asks for a face when none is selected', () => {
-    render(<RotationPicker face={null} disabled={false} onHover={vi.fn()} onLeave={vi.fn()} onRotate={vi.fn()} />);
+    render(<RotationPicker face={null} busy={false} onHover={vi.fn()} onLeave={vi.fn()} onRotate={vi.fn()} />);
 
     expect(screen.getByText(/Click a face on the net/)).toBeInTheDocument();
     expect(screen.queryAllByRole('button')).toHaveLength(0);
@@ -13,7 +13,7 @@ describe('RotationPicker', () => {
   it('offers the three rotations for the selected face and previews on hover', async () => {
     const onHover = vi.fn();
     const onRotate = vi.fn();
-    render(<RotationPicker face="Right" disabled={false} onHover={onHover} onLeave={vi.fn()} onRotate={onRotate} />);
+    render(<RotationPicker face="Right" busy={false} onHover={onHover} onLeave={vi.fn()} onRotate={onRotate} />);
 
     expect(screen.getByRole('heading')).toHaveTextContent('Turn the Right face');
     await userEvent.hover(screen.getByRole('button', { name: '90° anti-clockwise' }));
@@ -23,11 +23,15 @@ describe('RotationPicker', () => {
     expect(onRotate).toHaveBeenCalledWith('Right', 'Half');
   });
 
-  it('disables the options while a request is in flight', () => {
-    render(<RotationPicker face="Up" disabled onHover={vi.fn()} onLeave={vi.fn()} onRotate={vi.fn()} />);
+  it('ignores clicks while busy without taking focus away', async () => {
+    const onRotate = vi.fn();
+    render(<RotationPicker face="Up" busy onHover={vi.fn()} onLeave={vi.fn()} onRotate={onRotate} />);
 
-    for (const button of screen.getAllByRole('button')) {
-      expect(button).toBeDisabled();
-    }
+    const option = screen.getByRole('button', { name: '180°' });
+    await userEvent.click(option);
+
+    expect(onRotate).not.toHaveBeenCalled();
+    expect(option).toHaveAttribute('aria-disabled', 'true');
+    expect(option).toHaveFocus();
   });
 });

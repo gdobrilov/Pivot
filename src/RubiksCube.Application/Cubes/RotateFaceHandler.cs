@@ -6,7 +6,7 @@ using RubiksCube.Domain;
 
 namespace RubiksCube.Application.Cubes;
 
-public sealed class RotateFaceHandler(ICubeSessionRepository repository, IClock clock, IDomainEventDispatcher dispatcher)
+public sealed class RotateFaceHandler(ICubeSessionRepository repository, TimeProvider timeProvider, IDomainEventDispatcher dispatcher)
     : ICommandHandler<RotateFaceCommand, Result<CubeSnapshot>>
 {
     public async Task<Result<CubeSnapshot>> HandleAsync(RotateFaceCommand command, CancellationToken cancellationToken = default)
@@ -23,7 +23,7 @@ public sealed class RotateFaceHandler(ICubeSessionRepository repository, IClock 
             return ResultError.SessionNotFound(command.SessionId);
         }
 
-        session.Rotate(new Move(command.Face, command.Rotation), clock.UtcNow);
+        session.Rotate(new Move(command.Face, command.Rotation), timeProvider.GetUtcNow());
         return await SessionChanges.CommitAsync(session, repository, dispatcher, cancellationToken).ConfigureAwait(false);
     }
 }

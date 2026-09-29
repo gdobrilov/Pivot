@@ -7,8 +7,8 @@ public interface ICubeSessionRepository
 {
     Task<CubeSession?> FindAsync(Guid id, CancellationToken cancellationToken = default);
 
-    Task AddAsync(CubeSession session, CancellationToken cancellationToken = default);
+    void Add(CubeSession session);
 
-    /// <exception cref="ConcurrencyConflictException">Someone else changed the session in the meantime.</exception>
+    /// <exception cref="ConcurrencyConflictException">Another request changed the session at the same time.</exception>
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

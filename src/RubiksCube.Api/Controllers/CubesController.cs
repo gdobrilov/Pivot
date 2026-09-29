@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using RubiksCube.Api.Contracts;
 using RubiksCube.Application.Common;
 using RubiksCube.Application.Cubes;
@@ -44,8 +45,8 @@ public sealed class CubesController : ApiControllerBase
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Preview(
         Guid id,
-        [FromQuery] Face face,
-        [FromQuery] Rotation rotation,
+        [FromQuery, BindRequired] Face face,
+        [FromQuery, BindRequired] Rotation rotation,
         [FromServices] IQueryHandler<PreviewRotationQuery, Result<RotationPreview>> handler,
         CancellationToken cancellationToken)
     {
@@ -65,7 +66,8 @@ public sealed class CubesController : ApiControllerBase
         [FromServices] ICommandHandler<RotateFaceCommand, Result<CubeSnapshot>> handler,
         CancellationToken cancellationToken)
     {
-        var result = await handler.HandleAsync(new RotateFaceCommand(id, request.Face, request.Rotation), cancellationToken);
+        // [Required] has already turned a missing face or rotation into a 400.
+        var result = await handler.HandleAsync(new RotateFaceCommand(id, request.Face!.Value, request.Rotation!.Value), cancellationToken);
         return FromResult(result, Ok);
     }
 
@@ -83,7 +85,7 @@ public sealed class CubesController : ApiControllerBase
     }
 
     /// <summary>Reverses the most recent effective rotation.</summary>
-    [HttpPost("{id:guid}/rotations/undo")]
+    [HttpPost("{id:guid}/undo")]
     [ProducesResponseType<CubeSnapshot>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
@@ -111,17 +113,17 @@ public sealed class CubesController : ApiControllerBase
         return FromResult(result, Ok);
     }
 
-    /// <summary>Renders the cube as a plain-text exploded view, using the same renderer as the console.</summary>
+    /// <summary>The net as plain text, from the same renderer as the console.</summary>
     [HttpGet("{id:guid}/net")]
     [Produces("text/plain")]
     [ProducesResponseType<string>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetNet(
         Guid id,
-        [FromServices] IQueryHandler<RenderCubeQuery, Result<string>> handler,
+        [FromServices] IQueryHandler<GetNetQuery, Result<string>> handler,
         CancellationToken cancellationToken)
     {
-        var result = await handler.HandleAsync(new RenderCubeQuery(id), cancellationToken);
+        var result = await handler.HandleAsync(new GetNetQuery(id), cancellationToken);
         return FromResult(result, text => Content(text, "text/plain"));
     }
 }

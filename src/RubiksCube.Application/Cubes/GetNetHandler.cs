@@ -5,10 +5,10 @@ using RubiksCube.Application.Rendering;
 
 namespace RubiksCube.Application.Cubes;
 
-public sealed class RenderCubeHandler(ICubeSessionRepository repository, ICubeRenderer renderer)
-    : IQueryHandler<RenderCubeQuery, Result<string>>
+public sealed class GetNetHandler(ICubeSessionRepository repository, ICubeRenderer renderer)
+    : IQueryHandler<GetNetQuery, Result<string>>
 {
-    public async Task<Result<string>> HandleAsync(RenderCubeQuery query, CancellationToken cancellationToken = default)
+    public async Task<Result<string>> HandleAsync(GetNetQuery query, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(query);
         var session = await repository.FindAsync(query.SessionId, cancellationToken).ConfigureAwait(false);

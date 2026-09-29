@@ -20,8 +20,6 @@ public sealed class Result<T>
 
     public bool IsSuccess => _error is null;
 
-    public bool IsFailure => !IsSuccess;
-
     public T Value => IsSuccess ? _value! : throw new InvalidOperationException("A failed result has no value.");
 
     public ResultError Error => _error ?? throw new InvalidOperationException("A successful result has no error.");

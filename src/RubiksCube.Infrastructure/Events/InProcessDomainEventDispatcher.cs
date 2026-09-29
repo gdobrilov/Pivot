@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using RubiksCube.Application.Abstractions;
 using RubiksCube.Domain.Events;
@@ -8,34 +7,17 @@ namespace RubiksCube.Infrastructure.Events;
 /// <summary>Calls the listeners for each event, in order, on the calling thread. No queue, no retry.</summary>
 public sealed class InProcessDomainEventDispatcher(IServiceProvider serviceProvider) : IDomainEventDispatcher
 {
-    private static readonly ConcurrentDictionary<Type, Invoker> Invokers = new();
-
     public async Task DispatchAsync(IReadOnlyList<IDomainEvent> events, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(events);
         foreach (var domainEvent in events)
         {
-            var invoker = Invokers.GetOrAdd(domainEvent.GetType(), CreateInvoker);
-            await invoker.InvokeAsync(serviceProvider, domainEvent, cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    private static Invoker CreateInvoker(Type eventType) =>
-        (Invoker)Activator.CreateInstance(typeof(Invoker<>).MakeGenericType(eventType))!;
-
-    private abstract class Invoker
-    {
-        public abstract Task InvokeAsync(IServiceProvider serviceProvider, IDomainEvent domainEvent, CancellationToken cancellationToken);
-    }
-
-    private sealed class Invoker<TEvent> : Invoker
-        where TEvent : IDomainEvent
-    {
-        public override async Task InvokeAsync(IServiceProvider serviceProvider, IDomainEvent domainEvent, CancellationToken cancellationToken)
-        {
-            foreach (var listener in serviceProvider.GetServices<IDomainEventListener<TEvent>>())
+            // Listeners are typed by event, so look them up by the event's runtime type.
+            var listenerType = typeof(IDomainEventListener<>).MakeGenericType(domainEvent.GetType());
+            var handle = listenerType.GetMethod(nameof(IDomainEventListener<IDomainEvent>.HandleAsync))!;
+            foreach (var listener in serviceProvider.GetServices(listenerType))
             {
-                await listener.HandleAsync((TEvent)domainEvent, cancellationToken).ConfigureAwait(false);
+                await ((Task)handle.Invoke(listener, [domainEvent, cancellationToken])!).ConfigureAwait(false);
             }
         }
     }

@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-  <!-- HTTP adapter: exposes the Application use cases as a small REST API. -->
+  <!-- HTTP adapter and composition root: wires the Application use cases to the Infrastructure adapters. -->
   <ItemGroup>
     <ProjectReference Include="../RubiksCube.Application/RubiksCube.Application.csproj" />
     <ProjectReference Include="../RubiksCube.Infrastructure/RubiksCube.Infrastructure.csproj" />
@@ -8,8 +8,5 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
     <PackageReference Include="Scalar.AspNetCore" />
-  </ItemGroup>
-  <ItemGroup>
-    <InternalsVisibleTo Include="RubiksCube.Api.Tests" />
   </ItemGroup>
 </Project>

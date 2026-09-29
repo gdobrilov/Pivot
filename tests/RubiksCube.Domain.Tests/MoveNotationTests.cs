@@ -1,4 +1,3 @@
-
 namespace RubiksCube.Domain.Tests;
 
 public class MoveNotationTests
@@ -6,8 +5,6 @@ public class MoveNotationTests
     [Fact]
     public void Parses_the_challenge_sequence()
     {
-        var moves = MoveNotation.Parse("F R' U B' L D'");
-
         Assert.Equal(
             [
                 Move.Clockwise(Face.Front),
@@ -17,7 +14,7 @@ public class MoveNotationTests
                 Move.Clockwise(Face.Left),
                 Move.AntiClockwise(Face.Down),
             ],
-            moves);
+            MoveNotation.Parse("F R' U B' L D'"));
     }
 
     [Fact]
@@ -30,8 +27,8 @@ public class MoveNotationTests
     [Theory]
     [InlineData("F,R',U2")]
     [InlineData("  F   R'\tU2 ")]
-    [InlineData("F\nR'\nU2")]
-    public void Accepts_commas_and_any_whitespace_as_separators(string notation)
+    [InlineData("F\nR'\r\nU2")]
+    public void Accepts_spaces_tabs_new_lines_and_commas_as_separators(string notation)
     {
         Assert.Equal("F R' U2", MoveNotation.Format(MoveNotation.Parse(notation)));
     }

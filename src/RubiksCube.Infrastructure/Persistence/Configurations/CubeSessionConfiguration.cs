@@ -17,7 +17,6 @@ internal sealed class CubeSessionConfiguration : IEntityTypeConfiguration<CubeSe
         builder.Property(session => session.Cube)
             .HasConversion(cube => cube.ToFacelets(), facelets => Cube.FromFacelets(facelets))
             .HasColumnName("Facelets")
-            .HasMaxLength(64)
             .IsRequired();
 
         builder.Property(session => session.CreatedAtUtc).IsRequired();

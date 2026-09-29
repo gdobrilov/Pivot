@@ -4,7 +4,6 @@ using RubiksCube.Application.Abstractions;
 using RubiksCube.Domain.Events;
 using RubiksCube.Infrastructure.Events;
 using RubiksCube.Infrastructure.Persistence;
-using RubiksCube.Infrastructure.Time;
 
 namespace RubiksCube.Infrastructure;
 
@@ -15,11 +14,13 @@ public static class DependencyInjection
     {
         services.AddDbContext<RubiksDbContext>(configureDatabase);
         services.AddScoped<ICubeSessionRepository, EfCubeSessionRepository>();
-        services.AddSingleton<IClock, SystemClock>();
+        services.AddSingleton(TimeProvider.System);
         services.AddScoped<IDomainEventDispatcher, InProcessDomainEventDispatcher>();
-        services.AddScoped<IDomainEventListener<CubeRotated>, RotationLoggingListener>();
-        services.AddScoped<IDomainEventListener<RotationUndone>, RotationLoggingListener>();
-        services.AddScoped<IDomainEventListener<CubeReset>, RotationLoggingListener>();
+
+        services.AddSingleton<CubeEventLoggingListener>();
+        services.AddSingleton<IDomainEventListener<CubeRotated>>(provider => provider.GetRequiredService<CubeEventLoggingListener>());
+        services.AddSingleton<IDomainEventListener<RotationUndone>>(provider => provider.GetRequiredService<CubeEventLoggingListener>());
+        services.AddSingleton<IDomainEventListener<CubeReset>>(provider => provider.GetRequiredService<CubeEventLoggingListener>());
         return services;
     }
 }

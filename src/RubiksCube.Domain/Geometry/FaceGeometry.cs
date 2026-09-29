@@ -5,7 +5,8 @@ namespace RubiksCube.Domain.Geometry;
 
 /// <summary>
 /// How the faces are glued together. For each face: the four neighbouring strips a clockwise turn
-/// drags round, in clockwise order, each read from the corner met first (so sticker k lands on sticker k).
+/// drags round, in clockwise order. Each strip is read starting from the corner you reach first when
+/// going clockwise round the turning face, so sticker k of one strip lands on sticker k of the next.
 /// </summary>
 internal static class FaceGeometry
 {
@@ -61,9 +62,6 @@ internal static class FaceGeometry
     public static Permutation PermutationFor(Move move, int size) =>
         Cache.GetOrAdd((size, move), key => Build(key.Move, key.Size));
 
-    /// <summary>For tests.</summary>
-    internal static IReadOnlyList<EdgeStrip> NeighboursOf(Face face) => Neighbours[face];
-
     private static Permutation Build(Move move, int size)
     {
         var clockwise = ClockwiseTurn(move.Face, size);
@@ -79,7 +77,7 @@ internal static class FaceGeometry
     private static Permutation ClockwiseTurn(Face face, int size) =>
         Permutation.FromMappings(Cube.StickerCount(size), OwnGridMappings(face, size).Concat(NeighbourMappings(face, size)));
 
-    // The face itself: (row, column) moves to (column, size − 1 − row).
+    // The face itself: (row, column) moves to (column, size - 1 - row).
     private static IEnumerable<(int Target, int Source)> OwnGridMappings(Face face, int size)
     {
         for (var row = 0; row < size; row++)

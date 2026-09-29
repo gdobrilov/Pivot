@@ -5,7 +5,7 @@ using RubiksCube.Application.Snapshots;
 
 namespace RubiksCube.Application.Cubes;
 
-public sealed class UndoRotationHandler(ICubeSessionRepository repository, IClock clock, IDomainEventDispatcher dispatcher)
+public sealed class UndoRotationHandler(ICubeSessionRepository repository, TimeProvider timeProvider, IDomainEventDispatcher dispatcher)
     : ICommandHandler<UndoRotationCommand, Result<CubeSnapshot>>
 {
     public async Task<Result<CubeSnapshot>> HandleAsync(UndoRotationCommand command, CancellationToken cancellationToken = default)
@@ -19,10 +19,10 @@ public sealed class UndoRotationHandler(ICubeSessionRepository repository, ICloc
 
         if (!session.CanUndo)
         {
-            return ResultError.Validation("There is nothing to undo.");
+            return ResultError.Conflict("There is nothing to undo.");
         }
 
-        session.Undo(clock.UtcNow);
+        session.Undo(timeProvider.GetUtcNow());
         return await SessionChanges.CommitAsync(session, repository, dispatcher, cancellationToken).ConfigureAwait(false);
     }
 }

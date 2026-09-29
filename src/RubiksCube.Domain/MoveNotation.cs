@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 
 namespace RubiksCube.Domain;
 
@@ -25,7 +26,11 @@ public static class MoveNotation
 
     public static string Format(Move move)
     {
-        var symbol = SymbolsByFace[move.Face];
+        if (!SymbolsByFace.TryGetValue(move.Face, out var symbol))
+        {
+            throw new ArgumentOutOfRangeException(nameof(move), move.Face, "Unknown face.");
+        }
+
         return move.Rotation switch
         {
             Rotation.Clockwise => symbol.ToString(),
@@ -41,8 +46,8 @@ public static class MoveNotation
         return string.Join(' ', moves.Select(Format));
     }
 
-    /// <summary>Moves are separated by whitespace or commas. On failure, <paramref name="error"/> says which token was wrong.</summary>
-    public static bool TryParse(string? notation, out IReadOnlyList<Move> moves, out string? error)
+    /// <summary>Moves are separated by spaces, tabs, new lines or commas. On failure, <paramref name="error"/> says which token was wrong.</summary>
+    public static bool TryParse(string? notation, out IReadOnlyList<Move> moves, [NotNullWhen(false)] out string? error)
     {
         var parsed = new List<Move>();
         var tokens = (notation ?? string.Empty).Split(Separators, StringSplitOptions.RemoveEmptyEntries);
