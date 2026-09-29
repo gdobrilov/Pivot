@@ -20,13 +20,13 @@ function time(iso: string): string {
   return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-/** The audit trail: everything done to this cube, newest first. */
+/** Everything done to this cube, newest first. */
 export function ActivityLog({ entries }: ActivityLogProps) {
   return (
     <section className="log" aria-label="Activity log">
-      <h2>Activity</h2>
+      <h2>On the record</h2>
       {entries.length === 0 ? (
-        <p className="muted">Nothing yet. The cube is solved.</p>
+        <p className="muted">No turns yet. Suspiciously tidy.</p>
       ) : (
         <ol reversed>
           {[...entries].reverse().map((entry) => (

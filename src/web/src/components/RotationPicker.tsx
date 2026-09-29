@@ -14,6 +14,7 @@ export function RotationPicker({ face, disabled, onHover, onLeave, onRotate }: R
   if (!face) {
     return (
       <section className="picker" aria-label="Rotation">
+        <h2>Pick a face</h2>
         <p className="muted">Click a face on the net to choose what to turn.</p>
       </section>
     );

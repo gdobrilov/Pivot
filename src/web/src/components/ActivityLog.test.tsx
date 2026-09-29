@@ -6,7 +6,7 @@ describe('ActivityLog', () => {
   it('shows an empty state', () => {
     render(<ActivityLog entries={[]} />);
 
-    expect(screen.getByText(/Nothing yet/)).toBeInTheDocument();
+    expect(screen.getByText(/No turns yet/)).toBeInTheDocument();
   });
 
   it('lists entries newest first with what happened and when', () => {

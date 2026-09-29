@@ -34,7 +34,7 @@ public static class ConsoleApp
         var renderer = new ExplodedViewRenderer();
         var cube = Cube.Solved();
 
-        output.WriteLine("Rubik's cube simulator (TTC challenge)");
+        output.WriteLine("Pivot: we turn things around.");
         output.WriteLine("Legend: W White, O Orange, G Green, R Red, B Blue, Y Yellow");
         output.WriteLine();
         output.WriteLine("Initial state (solved):");

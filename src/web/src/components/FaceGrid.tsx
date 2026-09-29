@@ -1,4 +1,4 @@
-import type { Colour, Face, FaceStickers } from '../domain/types';
+import type { Colour, Face, FaceStickers, Rotation } from '../domain/types';
 import { Sticker } from './Sticker';
 
 interface FaceGridProps {
@@ -6,16 +6,28 @@ interface FaceGridProps {
   stickers: FaceStickers;
   /** Colours after the previewed move, if a preview is active. */
   previewStickers?: FaceStickers;
+  /** Set when this face just turned: it animates into place. */
+  turning?: Rotation;
   selected: boolean;
   disabled: boolean;
   onSelect(face: Face): void;
 }
 
-export function FaceGrid({ face, stickers, previewStickers, selected, disabled, onSelect }: FaceGridProps) {
+const TURN_CLASS: Record<Rotation, string> = {
+  Clockwise: 'face--turn-cw',
+  AntiClockwise: 'face--turn-ccw',
+  Half: 'face--turn-half',
+};
+
+export function FaceGrid({ face, stickers, previewStickers, turning, selected, disabled, onSelect }: FaceGridProps) {
+  const classes = ['face', `face--${face.toLowerCase()}`];
+  if (selected) classes.push('face--selected');
+  if (turning) classes.push(TURN_CLASS[turning]);
+
   return (
     <button
       type="button"
-      className={`face face--${face.toLowerCase()}${selected ? ' face--selected' : ''}`}
+      className={classes.join(' ')}
       data-testid={`face-${face}`}
       aria-label={`${face} face`}
       aria-pressed={selected}

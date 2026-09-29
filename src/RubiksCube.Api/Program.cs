@@ -44,7 +44,7 @@ app.UseCors();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.MapScalarApiReference(options => options.WithTitle("Rubik's Cube API"));
+    app.MapScalarApiReference(options => options.WithTitle("Pivot API"));
 }
 
 app.MapHealthChecks("/health");
