@@ -2,11 +2,7 @@ using System.Collections.Frozen;
 
 namespace RubiksCube.Domain;
 
-/// <summary>
-/// Parses and formats moves in standard Singmaster notation: a face letter (U, L, F, R, B, D)
-/// optionally followed by <c>'</c> for anti-clockwise or <c>2</c> for a half turn.
-/// Moves are separated by whitespace or commas, e.g. <c>F R' U B' L D'</c>.
-/// </summary>
+/// <summary>Singmaster notation: a face letter, optionally followed by ' (anti-clockwise) or 2 (half turn).</summary>
 public static class MoveNotation
 {
     private const char AntiClockwiseSuffix = '\'';
@@ -27,7 +23,6 @@ public static class MoveNotation
     private static readonly FrozenDictionary<Face, char> SymbolsByFace =
         FacesBySymbol.ToFrozenDictionary(pair => pair.Value, pair => pair.Key);
 
-    /// <summary>Formats a single move, e.g. <c>R'</c>.</summary>
     public static string Format(Move move)
     {
         var symbol = SymbolsByFace[move.Face];
@@ -40,17 +35,13 @@ public static class MoveNotation
         };
     }
 
-    /// <summary>Formats a sequence of moves separated by single spaces.</summary>
     public static string Format(IEnumerable<Move> moves)
     {
         ArgumentNullException.ThrowIfNull(moves);
         return string.Join(' ', moves.Select(Format));
     }
 
-    /// <summary>
-    /// Parses a move sequence. Returns <see langword="false"/> with a human-readable
-    /// <paramref name="error"/> if any token is invalid.
-    /// </summary>
+    /// <summary>Moves are separated by whitespace or commas. On failure, <paramref name="error"/> says which token was wrong.</summary>
     public static bool TryParse(string? notation, out IReadOnlyList<Move> moves, out string? error)
     {
         var parsed = new List<Move>();
@@ -74,7 +65,6 @@ public static class MoveNotation
         return true;
     }
 
-    /// <summary>Parses a move sequence, throwing <see cref="FormatException"/> if it is invalid.</summary>
     public static IReadOnlyList<Move> Parse(string notation) =>
         TryParse(notation, out var moves, out var error) ? moves : throw new FormatException(error);
 

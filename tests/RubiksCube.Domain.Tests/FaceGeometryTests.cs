@@ -3,10 +3,7 @@ using RubiksCube.Domain.Geometry;
 
 namespace RubiksCube.Domain.Tests;
 
-/// <summary>
-/// Pins down the exact effect of each turn. The expected facelet strings (faces in U L F R B D
-/// order) were cross-checked against https://rubiks-cube-solver.com/.
-/// </summary>
+/// <summary>Expected facelets (U L F R B D) were checked against rubiks-cube-solver.com.</summary>
 public class FaceGeometryTests
 {
     [Theory]

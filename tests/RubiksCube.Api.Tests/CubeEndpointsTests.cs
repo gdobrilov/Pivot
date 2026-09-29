@@ -9,7 +9,7 @@ using RubiksCube.Domain;
 
 namespace RubiksCube.Api.Tests;
 
-/// <summary>End-to-end tests through the HTTP pipeline and the real EF Core mapping.</summary>
+/// <summary>Through HTTP, DI, JSON and the real EF mapping.</summary>
 public sealed class CubeEndpointsTests : IClassFixture<ApiFactory>, IDisposable
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };

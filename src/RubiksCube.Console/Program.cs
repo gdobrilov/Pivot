@@ -1,7 +1,7 @@
 using RubiksCube.Application.Rendering;
 using RubiksCube.Domain;
 
-// The sequence from the TTC challenge brief: F, R', U, B', L, D'.
+// The sequence from the brief.
 const string ChallengeSequence = "F R' U B' L D'";
 const string StepsFlag = "--steps";
 

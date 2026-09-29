@@ -4,24 +4,9 @@ using System.Collections.Frozen;
 namespace RubiksCube.Domain.Geometry;
 
 /// <summary>
-/// The only place that knows how the six faces are glued together. It describes what a turn of
-/// each face does to the stickers as a <see cref="Permutation"/>, which <see cref="Cube.Turn"/>
-/// then simply applies.
+/// How the faces are glued together. For each face: the four neighbouring strips a clockwise turn
+/// drags round, in clockwise order, each read from the corner met first (so sticker k lands on sticker k).
 /// </summary>
-/// <remarks>
-/// <para>A clockwise turn of a face does two independent things:</para>
-/// <list type="number">
-///   <item>the face's own grid rotates clockwise (<see cref="FaceGrid.RotatedClockwise"/>), and</item>
-///   <item>the four strips of stickers on the neighbouring faces move round one place.</item>
-/// </list>
-/// <para>
-/// <see cref="Neighbours"/> lists, for each face, those four strips in the order they are met when
-/// travelling clockwise around the turning face, each read from the corner met first. Sticker k
-/// of one strip lands on sticker k of the next, and the last strip wraps to the first. Faces are
-/// drawn as in the net (U above F; L, F, R, B in a row; D below F), so Back is seen from behind.
-/// </para>
-/// <para>An anti-clockwise turn is the inverse permutation; a half turn is the clockwise one applied twice.</para>
-/// </remarks>
 internal static class FaceGeometry
 {
     private static readonly FrozenDictionary<Face, EdgeStrip[]> Neighbours = new Dictionary<Face, EdgeStrip[]>
@@ -72,11 +57,11 @@ internal static class FaceGeometry
 
     private static readonly ConcurrentDictionary<(int Size, Move Move), Permutation> Cache = new();
 
-    /// <summary>The permutation for <paramref name="move"/> on a cube of the given size, computed once and cached.</summary>
+    /// <summary>Built once per (size, move) and cached.</summary>
     public static Permutation PermutationFor(Move move, int size) =>
         Cache.GetOrAdd((size, move), key => Build(key.Move, key.Size));
 
-    /// <summary>The strips that move when <paramref name="face"/> turns, in clockwise order. Exposed for tests.</summary>
+    /// <summary>For tests.</summary>
     internal static IReadOnlyList<EdgeStrip> NeighboursOf(Face face) => Neighbours[face];
 
     private static Permutation Build(Move move, int size)
@@ -94,7 +79,7 @@ internal static class FaceGeometry
     private static Permutation ClockwiseTurn(Face face, int size) =>
         Permutation.FromMappings(Cube.StickerCount(size), OwnGridMappings(face, size).Concat(NeighbourMappings(face, size)));
 
-    /// <summary>The turning face's own stickers: (row, column) moves to (column, size − 1 − row).</summary>
+    // The face itself: (row, column) moves to (column, size − 1 − row).
     private static IEnumerable<(int Target, int Source)> OwnGridMappings(Face face, int size)
     {
         for (var row = 0; row < size; row++)
@@ -108,7 +93,7 @@ internal static class FaceGeometry
         }
     }
 
-    /// <summary>Each neighbouring strip moves onto the next one, sticker k onto sticker k.</summary>
+    // Each strip moves onto the next one, sticker k onto sticker k.
     private static IEnumerable<(int Target, int Source)> NeighbourMappings(Face face, int size)
     {
         var strips = Neighbours[face];

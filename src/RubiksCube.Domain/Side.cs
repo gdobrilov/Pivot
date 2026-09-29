@@ -1,6 +1,6 @@
 namespace RubiksCube.Domain;
 
-/// <summary>One of the four sides of a face, as seen when looking straight at that face in its net orientation.</summary>
+/// <summary>A side of a face, as seen looking straight at that face.</summary>
 public enum Side
 {
     Top,
@@ -9,7 +9,7 @@ public enum Side
     Left,
 }
 
-/// <summary>One of the four corners of a face, in the same orientation as <see cref="Side"/>.</summary>
+/// <summary>A corner of a face, same point of view as <see cref="Side"/>.</summary>
 public enum Corner
 {
     TopLeft,

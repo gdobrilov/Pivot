@@ -1,6 +1,7 @@
 using RubiksCube.Application.Abstractions;
 using RubiksCube.Application.Common;
 using RubiksCube.Application.Messaging;
+using RubiksCube.Application.Rendering;
 using RubiksCube.Application.Snapshots;
 using RubiksCube.Domain;
 
@@ -17,7 +18,7 @@ public sealed class GetCubeHandler(ICubeSessionRepository repository)
     }
 }
 
-/// <summary>Shows what a move would do. Pure: nothing is stored and no event is raised.</summary>
+/// <summary>Nothing is stored and no event is raised.</summary>
 public sealed class PreviewRotationHandler(ICubeSessionRepository repository)
     : IQueryHandler<PreviewRotationQuery, Result<RotationPreview>>
 {
@@ -49,5 +50,16 @@ public sealed class GetRotationLogHandler(ICubeSessionRepository repository)
         }
 
         return Result.Success<IReadOnlyList<RotationLogEntrySnapshot>>(session.Log.Select(entry => entry.ToSnapshot()).ToList());
+    }
+}
+
+public sealed class RenderCubeHandler(ICubeSessionRepository repository, ICubeRenderer renderer)
+    : IQueryHandler<RenderCubeQuery, Result<string>>
+{
+    public async Task<Result<string>> HandleAsync(RenderCubeQuery query, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        var session = await repository.FindAsync(query.SessionId, cancellationToken).ConfigureAwait(false);
+        return session is null ? ResultError.SessionNotFound(query.SessionId) : renderer.Render(session.Cube);
     }
 }

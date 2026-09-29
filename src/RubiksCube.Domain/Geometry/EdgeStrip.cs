@@ -1,13 +1,9 @@
 namespace RubiksCube.Domain.Geometry;
 
-/// <summary>
-/// One side of a face together with the corner it is read from, e.g. "the bottom row of Up,
-/// read from its bottom-left corner". Reading direction matters: when a neighbouring face turns,
-/// sticker k of one strip lands on sticker k of the next.
-/// </summary>
+/// <summary>A side of a face and the corner it is read from, e.g. "Up's bottom row, from the bottom-left".</summary>
 internal readonly record struct EdgeStrip(Face Face, Side Side, Corner ReadFrom)
 {
-    /// <summary>The positions of the strip's stickers, in reading order, for a cube of the given size.</summary>
+    /// <summary>The strip's stickers in reading order.</summary>
     public IReadOnlyList<StickerPosition> Positions(int size)
     {
         var face = Face;
@@ -24,10 +20,7 @@ internal readonly record struct EdgeStrip(Face Face, Side Side, Corner ReadFrom)
         return ReadsBackwards ? positions.Reverse().ToArray() : positions.ToArray();
     }
 
-    /// <summary>
-    /// Rows are naturally read left to right and columns top to bottom; starting from the
-    /// opposite corner means reading the strip backwards.
-    /// </summary>
+    // Rows read left to right and columns top to bottom; the other corner means backwards.
     private bool ReadsBackwards => (Side, ReadFrom) switch
     {
         (Side.Top, Corner.TopLeft) => false,
@@ -38,6 +31,6 @@ internal readonly record struct EdgeStrip(Face Face, Side Side, Corner ReadFrom)
         (Side.Left, Corner.BottomLeft) => true,
         (Side.Right, Corner.TopRight) => false,
         (Side.Right, Corner.BottomRight) => true,
-        _ => throw new InvalidOperationException($"Corner {ReadFrom} does not lie on side {Side}."),
+        _ => throw new InvalidOperationException($"Corner {ReadFrom} is not on side {Side}."),
     };
 }

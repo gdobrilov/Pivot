@@ -3,20 +3,7 @@ using RubiksCube.Domain;
 
 namespace RubiksCube.Application.Rendering;
 
-/// <summary>
-/// Renders the cube as an exploded (net) view using one letter per sticker:
-/// <code>
-///          W W W
-///          W W W
-///          W W W
-///   O O O  G G G  R R R  B B B
-///   O O O  G G G  R R R  B B B
-///   O O O  G G G  R R R  B B B
-///          Y Y Y
-///          Y Y Y
-///          Y Y Y
-/// </code>
-/// </summary>
+/// <summary>The exploded view: U on top, then L F R B, then D, one letter per sticker.</summary>
 public sealed class ExplodedViewRenderer : ICubeRenderer
 {
     private const string FaceGap = "  ";

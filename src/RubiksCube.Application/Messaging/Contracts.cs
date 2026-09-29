@@ -1,9 +1,9 @@
 namespace RubiksCube.Application.Messaging;
 
-/// <summary>An intention to change state. Handled by exactly one <see cref="ICommandHandler{TCommand, TResult}"/>.</summary>
+/// <summary>Changes state. One handler per command.</summary>
 public interface ICommand<TResult>;
 
-/// <summary>A request for information with no side effects. Handled by exactly one <see cref="IQueryHandler{TQuery, TResult}"/>.</summary>
+/// <summary>Reads state, no side effects. One handler per query.</summary>
 public interface IQuery<TResult>;
 
 public interface ICommandHandler<in TCommand, TResult>

@@ -1,9 +1,6 @@
 namespace RubiksCube.Application.Common;
 
-/// <summary>
-/// Outcome of a use case: either a value or a <see cref="ResultError"/>. Expected failures such as
-/// "not found" or "invalid input" are part of the normal flow, so they are returned, not thrown.
-/// </summary>
+/// <summary>Either a value or a <see cref="ResultError"/>.</summary>
 public sealed class Result<T>
 {
     private readonly T? _value;
@@ -41,7 +38,6 @@ public sealed class Result<T>
     public static implicit operator Result<T>(ResultError error) => Result.Failure<T>(error);
 }
 
-/// <summary>Factory methods for <see cref="Result{T}"/>.</summary>
 public static class Result
 {
     public static Result<T> Success<T>(T value) => new(value);

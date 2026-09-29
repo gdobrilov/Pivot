@@ -1,6 +1,5 @@
 namespace RubiksCube.Domain;
 
-/// <summary>The six sticker colours of a standard Rubik's cube.</summary>
 public enum Colour
 {
     White,
@@ -13,7 +12,7 @@ public enum Colour
 
 public static class ColourExtensions
 {
-    /// <summary>Single-letter symbol used in facelet strings and the console view (W, O, G, R, B, Y).</summary>
+    /// <summary>One letter per colour (W O G R B Y), used in facelet strings and the console.</summary>
     public static char ToSymbol(this Colour colour) => colour switch
     {
         Colour.White => 'W',
@@ -33,6 +32,6 @@ public static class ColourExtensions
         'R' => Colour.Red,
         'B' => Colour.Blue,
         'Y' => Colour.Yellow,
-        _ => throw new FormatException($"'{symbol}' is not a colour symbol (expected one of W, O, G, R, B, Y)."),
+        _ => throw new FormatException($"'{symbol}' is not a colour symbol (expected W, O, G, R, B or Y)."),
     };
 }

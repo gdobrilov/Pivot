@@ -1,7 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { CubeApi } from '../api/cubeApi';
 import { useCubeSession } from './useCubeSession';
-import { CHALLENGE_RESULT, CHALLENGE_SEQUENCE_FIXTURE, FRONT_PREVIEW, LOG, SOLVED } from './testSupport';
+import { CHALLENGE_SEQUENCE } from '../domain/types';
+import { CHALLENGE_RESULT, FRONT_PREVIEW, LOG, SOLVED } from '../test/fixtures';
 
 function fakeApi(overrides: Partial<CubeApi> = {}): CubeApi {
   return {
@@ -44,7 +45,7 @@ describe('useCubeSession', () => {
     const { result } = renderHook(() => useCubeSession(api));
     await waitFor(() => expect(result.current.cube).not.toBeNull());
 
-    await act(() => result.current.rotateSequence(CHALLENGE_SEQUENCE_FIXTURE));
+    await act(() => result.current.rotateSequence(CHALLENGE_SEQUENCE));
 
     expect(api.rotate).toHaveBeenCalledTimes(6);
     expect(api.rotate).toHaveBeenNthCalledWith(2, SOLVED.id, 'Right', 'AntiClockwise');

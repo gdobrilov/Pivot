@@ -42,7 +42,7 @@ public class FaceGridTests
     [Fact]
     public void Uniform_means_a_single_colour()
     {
-        Assert.True(FaceGrid.Filled(3, Colour.Green).IsUniform);
+        Assert.True(FaceGrid.FromCells(2, [Colour.Green, Colour.Green, Colour.Green, Colour.Green]).IsUniform);
         Assert.False(Grid.IsUniform);
     }
 

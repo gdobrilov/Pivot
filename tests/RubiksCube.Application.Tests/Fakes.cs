@@ -4,7 +4,7 @@ using RubiksCube.Domain.Sessions;
 
 namespace RubiksCube.Application.Tests;
 
-/// <summary>Test doubles so the application layer is exercised without any infrastructure.</summary>
+/// <summary>Test doubles, so the handlers run without any infrastructure.</summary>
 internal sealed class FakeRepository : ICubeSessionRepository
 {
     private readonly Dictionary<Guid, CubeSession> _sessions = [];

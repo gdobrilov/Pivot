@@ -3,11 +3,10 @@ using RubiksCube.Application.Common;
 
 namespace RubiksCube.Api.Controllers;
 
-/// <summary>Shared plumbing for controllers: turns a use-case <see cref="Result{T}"/> into an HTTP response.</summary>
 [ApiController]
 public abstract class ApiControllerBase : ControllerBase
 {
-    /// <summary>The value on success; RFC 9457 problem details with the matching status on failure.</summary>
+    /// <summary>Value on success, problem details with the matching status on failure.</summary>
     protected IActionResult FromResult<T>(Result<T> result, Func<T, IActionResult> onSuccess)
     {
         ArgumentNullException.ThrowIfNull(result);

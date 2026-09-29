@@ -2,11 +2,7 @@ using RubiksCube.Domain.Events;
 
 namespace RubiksCube.Domain.Sessions;
 
-/// <summary>
-/// Aggregate root: a cube together with the append-only log of everything done to it.
-/// The log is the audit trail and the source of undo; the cube is kept alongside it so the
-/// current state never has to be replayed.
-/// </summary>
+/// <summary>A cube plus the append-only log of everything done to it. The log is the audit trail and drives undo.</summary>
 public sealed class CubeSession
 {
     private readonly List<RotationLogEntry> _log = [];
@@ -25,13 +21,12 @@ public sealed class CubeSession
 
     public DateTimeOffset CreatedAtUtc { get; private set; }
 
-    /// <summary>Incremented on every change; used as an optimistic concurrency token by persistence.</summary>
+    /// <summary>Bumped on every change; persistence uses it as a concurrency token.</summary>
     public int Version { get; private set; }
 
-    /// <summary>Everything done to this session, oldest first.</summary>
     public IReadOnlyList<RotationLogEntry> Log => _log;
 
-    /// <summary>The moves that currently shape the cube: rotations since the last reset, minus undone ones.</summary>
+    /// <summary>Rotations since the last reset, minus the undone ones.</summary>
     public IReadOnlyList<Move> EffectiveMoves
     {
         get
@@ -63,7 +58,6 @@ public sealed class CubeSession
 
     public static CubeSession Create(DateTimeOffset now) => new(Guid.NewGuid(), Cube.Solved(), now);
 
-    /// <summary>Turns a face and records it.</summary>
     public RotationLogEntry Rotate(Move move, DateTimeOffset now)
     {
         Cube = Cube.Turn(move);
@@ -72,8 +66,7 @@ public sealed class CubeSession
         return entry;
     }
 
-    /// <summary>Reverses the most recent effective move by applying its inverse.</summary>
-    /// <exception cref="InvalidOperationException">There is nothing to undo; check <see cref="CanUndo"/> first.</exception>
+    /// <summary>Applies the inverse of the last effective move. Check <see cref="CanUndo"/> first.</summary>
     public RotationLogEntry Undo(DateTimeOffset now)
     {
         var effective = EffectiveMoves;
@@ -89,7 +82,6 @@ public sealed class CubeSession
         return entry;
     }
 
-    /// <summary>Returns the cube to the solved state. The log keeps everything that came before.</summary>
     public RotationLogEntry Reset(DateTimeOffset now)
     {
         Cube = Cube.Solved(Cube.Size);
@@ -98,7 +90,7 @@ public sealed class CubeSession
         return entry;
     }
 
-    /// <summary>Hands over the events raised since the last call and clears them.</summary>
+    /// <summary>Returns the events raised since the last call and forgets them.</summary>
     public IReadOnlyList<IDomainEvent> DequeueEvents()
     {
         var events = _pendingEvents.ToArray();

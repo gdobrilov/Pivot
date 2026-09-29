@@ -1,5 +1,6 @@
 using RubiksCube.Application.Common;
 using RubiksCube.Application.Cubes;
+using RubiksCube.Application.Rendering;
 using RubiksCube.Domain;
 
 namespace RubiksCube.Application.Tests;
@@ -71,6 +72,19 @@ public class QueryHandlerTests
         Assert.Equal(["Rotation", "Undo", "Reset"], log.Select(entry => entry.Kind));
         Assert.Equal(["F", "F", null], log.Select(entry => entry.Move));
         Assert.Equal(_clock.UtcNow, log[1].OccurredAtUtc);
+    }
+
+    [Fact]
+    public async Task Render_returns_the_exploded_view_or_not_found()
+    {
+        var id = await CreateAsync();
+        var handler = new RenderCubeHandler(_repository, new ExplodedViewRenderer());
+
+        var text = await handler.HandleAsync(new RenderCubeQuery(id));
+        var missing = await handler.HandleAsync(new RenderCubeQuery(Guid.NewGuid()));
+
+        Assert.StartsWith("       W W W", text.Value, StringComparison.Ordinal);
+        Assert.Equal(ErrorType.NotFound, missing.Error.Type);
     }
 
     private async Task<Guid> CreateAsync() =>

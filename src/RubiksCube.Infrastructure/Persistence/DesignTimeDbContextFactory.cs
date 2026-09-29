@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace RubiksCube.Infrastructure.Persistence;
 
-/// <summary>Lets <c>dotnet ef migrations add</c> run against this project without starting the API.</summary>
+/// <summary>For <c>dotnet ef migrations add</c>, so it does not need the API.</summary>
 internal sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<RubiksDbContext>
 {
     public RubiksDbContext CreateDbContext(string[] args) =>

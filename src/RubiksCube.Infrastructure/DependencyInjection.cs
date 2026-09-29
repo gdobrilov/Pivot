@@ -10,10 +10,7 @@ namespace RubiksCube.Infrastructure;
 
 public static class DependencyInjection
 {
-    /// <summary>
-    /// Registers the adapters. The caller decides where the database lives (a SQLite file in
-    /// production, an in-memory SQLite connection in tests) through <paramref name="configureDatabase"/>.
-    /// </summary>
+    /// <summary>The caller picks the database: a SQLite file for the API, in-memory SQLite for tests.</summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, Action<DbContextOptionsBuilder> configureDatabase)
     {
         services.AddDbContext<RubiksDbContext>(configureDatabase);

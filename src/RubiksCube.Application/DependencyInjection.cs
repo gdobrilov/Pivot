@@ -9,7 +9,7 @@ namespace RubiksCube.Application;
 
 public static class DependencyInjection
 {
-    /// <summary>Registers every use case. Each handler is listed explicitly so the set is visible at a glance.</summary>
+    /// <summary>Handlers are listed one by one so the full set of use cases is visible here.</summary>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddSingleton<ICubeRenderer, ExplodedViewRenderer>();
@@ -22,6 +22,7 @@ public static class DependencyInjection
         services.AddScoped<IQueryHandler<GetCubeQuery, Result<CubeSnapshot>>, GetCubeHandler>();
         services.AddScoped<IQueryHandler<PreviewRotationQuery, Result<RotationPreview>>, PreviewRotationHandler>();
         services.AddScoped<IQueryHandler<GetRotationLogQuery, Result<IReadOnlyList<RotationLogEntrySnapshot>>>, GetRotationLogHandler>();
+        services.AddScoped<IQueryHandler<RenderCubeQuery, Result<string>>, RenderCubeHandler>();
 
         return services;
     }

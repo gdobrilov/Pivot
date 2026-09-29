@@ -5,11 +5,7 @@ using RubiksCube.Domain.Sessions;
 
 namespace RubiksCube.Infrastructure.Persistence.Configurations;
 
-/// <summary>
-/// Maps the aggregate without touching the domain: the cube is stored as its facelet string,
-/// the log as an owned table saved in the same transaction, and <c>Version</c> is the
-/// optimistic concurrency token.
-/// </summary>
+/// <summary>Cube as a facelet string, log as an owned table (same transaction), Version as concurrency token.</summary>
 internal sealed class CubeSessionConfiguration : IEntityTypeConfiguration<CubeSession>
 {
     public void Configure(EntityTypeBuilder<CubeSession> builder)

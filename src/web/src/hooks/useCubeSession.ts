@@ -16,7 +16,7 @@ export interface CubeSession {
   clearPreview(): void;
 }
 
-/** Owns one server-side cube session: its state, its audit log, the current preview and the actions. */
+/** One server-side session: state, log, preview and the actions on it. */
 export function useCubeSession(api: CubeApi): CubeSession {
   const [cube, setCube] = useState<CubeState | null>(null);
   const [log, setLog] = useState<readonly LogEntry[]>([]);

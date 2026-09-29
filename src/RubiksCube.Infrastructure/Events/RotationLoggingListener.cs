@@ -4,10 +4,7 @@ using RubiksCube.Domain.Events;
 
 namespace RubiksCube.Infrastructure.Events;
 
-/// <summary>
-/// Writes each domain event to the application log as structured data. In a real deployment this
-/// is where a Service Bus publisher, metrics counter or notification would hang off the same events.
-/// </summary>
+/// <summary>Logs each event. A bus publisher or metrics would hang off the same events.</summary>
 public sealed partial class RotationLoggingListener(ILogger<RotationLoggingListener> logger)
     : IDomainEventListener<CubeRotated>, IDomainEventListener<RotationUndone>, IDomainEventListener<CubeReset>
 {

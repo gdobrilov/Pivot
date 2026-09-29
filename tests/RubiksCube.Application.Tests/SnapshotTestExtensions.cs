@@ -7,7 +7,7 @@ internal static class SnapshotTestExtensions
 {
     public static FacesSnapshot ToFacesSnapshotForTest(this Cube cube) => cube.ToFacesSnapshot();
 
-    /// <summary>Records compare collection properties by reference, so faces are compared sticker by sticker.</summary>
+    /// <summary>Records compare lists by reference, so compare face by face.</summary>
     public static void AssertSameFaces(FacesSnapshot expected, FacesSnapshot actual)
     {
         Assert.Equal(expected.Up, actual.Up);

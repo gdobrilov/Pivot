@@ -2,24 +2,9 @@ using RubiksCube.Domain.Geometry;
 
 namespace RubiksCube.Domain;
 
-/// <summary>
-/// An immutable Rubik's cube. Every turn returns a new instance, so a cube can be shared freely,
-/// compared by value and never observed half-turned.
-/// </summary>
-/// <remarks>
-/// Faces are oriented as in the exploded (net) view; each is a <see cref="FaceGrid"/> seen from
-/// outside the cube:
-/// <code>
-///           U
-///       L   F   R   B
-///           D
-/// </code>
-/// The solved orientation follows rubiks-cube-solver.com: white up, green front, red right.
-/// How faces are glued together lives in <see cref="FaceGeometry"/>.
-/// </remarks>
+/// <summary>Immutable: every turn returns a new cube. Solved is white up, green front, red right.</summary>
 public sealed class Cube : IEquatable<Cube>
 {
-    /// <summary>The standard cube.</summary>
     public const int DefaultSize = 3;
 
     private readonly Colour[] _stickers;
@@ -30,10 +15,8 @@ public sealed class Cube : IEquatable<Cube>
         _stickers = stickers;
     }
 
-    /// <summary>Number of stickers along one edge of a face.</summary>
     public int Size { get; }
 
-    /// <summary>The colour each face shows when the cube is solved.</summary>
     public static IReadOnlyDictionary<Face, Colour> SolvedColours { get; } = new Dictionary<Face, Colour>
     {
         [Face.Up] = Colour.White,
@@ -44,13 +27,11 @@ public sealed class Cube : IEquatable<Cube>
         [Face.Down] = Colour.Yellow,
     };
 
-    /// <summary>True when every face shows a single colour.</summary>
+    /// <summary>Every face shows a single colour.</summary>
     public bool IsSolved => Faces.All.All(face => this[face].IsUniform);
 
-    /// <summary>The stickers of one face.</summary>
     public FaceGrid this[Face face] => FaceGrid.FromCells(Size, FaceSlice(face));
 
-    /// <summary>The sticker at the given zero-based row and column of a face.</summary>
     public Colour this[Face face, int row, int column]
     {
         get
@@ -63,7 +44,6 @@ public sealed class Cube : IEquatable<Cube>
         }
     }
 
-    /// <summary>Creates a solved cube.</summary>
     public static Cube Solved(int size = DefaultSize)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(size, 2);
@@ -77,9 +57,7 @@ public sealed class Cube : IEquatable<Cube>
         return new Cube(size, stickers);
     }
 
-    /// <summary>
-    /// Restores a cube from its facelet string (see <see cref="ToFacelets"/>); whitespace is ignored.
-    /// </summary>
+    /// <summary>Inverse of <see cref="ToFacelets"/>; whitespace is ignored.</summary>
     public static Cube FromFacelets(string facelets)
     {
         ArgumentNullException.ThrowIfNull(facelets);
@@ -93,7 +71,6 @@ public sealed class Cube : IEquatable<Cube>
         return new Cube(size, symbols.Select(ColourExtensions.FromSymbol).ToArray());
     }
 
-    /// <summary>Applies one move and returns the resulting cube. This instance is unchanged.</summary>
     public Cube Turn(Move move)
     {
         var permutation = FaceGeometry.PermutationFor(move, Size);
@@ -102,7 +79,6 @@ public sealed class Cube : IEquatable<Cube>
         return new Cube(Size, next);
     }
 
-    /// <summary>Applies the moves in order and returns the resulting cube.</summary>
     public Cube Apply(IEnumerable<Move> moves)
     {
         ArgumentNullException.ThrowIfNull(moves);
@@ -111,10 +87,10 @@ public sealed class Cube : IEquatable<Cube>
 
     public Cube Apply(params Move[] moves) => Apply((IEnumerable<Move>)moves);
 
-    /// <summary>All stickers as one letter each, face by face in net order (U L F R B D), without separators.</summary>
+    /// <summary>All stickers as letters, face by face (U L F R B D), no separators.</summary>
     public string ToFacelets() => string.Concat(_stickers.Select(ColourExtensions.ToSymbol));
 
-    /// <summary>Facelets grouped per face, e.g. a solved cube is <c>WWWWWWWWW OOOOOOOOO GGGGGGGGG RRRRRRRRR BBBBBBBBB YYYYYYYYY</c>.</summary>
+    /// <summary>Facelets with a space between faces, e.g. "WWWWWWWWW OOOOOOOOO …".</summary>
     public override string ToString() => string.Join(' ', Faces.All.Select(face => this[face].ToString()));
 
     public bool Equals(Cube? other) => other is not null && Size == other.Size && _stickers.AsSpan().SequenceEqual(other._stickers);

@@ -1,10 +1,6 @@
 namespace RubiksCube.Domain;
 
-/// <summary>
-/// The six faces of the cube as positions in space, named from the solver's point of view.
-/// A face keeps its name forever because whole-cube rotations are not modelled; only the
-/// stickers on it change.
-/// </summary>
+/// <summary>A face is a position in space, not a colour: we never turn the whole cube, so Up stays Up.</summary>
 public enum Face
 {
     Up,
@@ -17,6 +13,6 @@ public enum Face
 
 public static class Faces
 {
-    /// <summary>All faces in net order (U, L, F, R, B, D).</summary>
+    /// <summary>All faces in net order: U, L, F, R, B, D.</summary>
     public static IReadOnlyList<Face> All { get; } = Enum.GetValues<Face>();
 }

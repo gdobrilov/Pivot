@@ -3,17 +3,12 @@ using RubiksCube.Api.Contracts;
 using RubiksCube.Application.Common;
 using RubiksCube.Application.Cubes;
 using RubiksCube.Application.Messaging;
-using RubiksCube.Application.Rendering;
 using RubiksCube.Application.Snapshots;
 using RubiksCube.Domain;
 
 namespace RubiksCube.Api.Controllers;
 
-/// <summary>
-/// Thin HTTP layer over the cube use cases. Each action builds one command or query and hands it
-/// to its handler; the handler is injected per action so the controller declares only what each
-/// route needs.
-/// </summary>
+/// <summary>Each action builds a command or query and hands it to the handler injected for that route.</summary>
 [Route("api/cubes")]
 [Tags("Cubes")]
 public sealed class CubesController : ApiControllerBase
@@ -123,17 +118,10 @@ public sealed class CubesController : ApiControllerBase
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetNet(
         Guid id,
-        [FromServices] IQueryHandler<GetCubeQuery, Result<CubeSnapshot>> handler,
-        [FromServices] ICubeRenderer renderer,
+        [FromServices] IQueryHandler<RenderCubeQuery, Result<string>> handler,
         CancellationToken cancellationToken)
     {
-        var result = await handler.HandleAsync(new GetCubeQuery(id), cancellationToken);
-        return FromResult(result, snapshot => Content(renderer.Render(ToCube(snapshot.Faces)), "text/plain"));
+        var result = await handler.HandleAsync(new RenderCubeQuery(id), cancellationToken);
+        return FromResult(result, text => Content(text, "text/plain"));
     }
-
-    private static Cube ToCube(FacesSnapshot faces) =>
-        Cube.FromFacelets(string.Concat(
-            new[] { faces.Up, faces.Left, faces.Front, faces.Right, faces.Back, faces.Down }
-                .SelectMany(face => face)
-                .Select(colour => colour.ToSymbol())));
 }

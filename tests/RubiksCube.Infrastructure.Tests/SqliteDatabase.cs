@@ -4,10 +4,7 @@ using RubiksCube.Infrastructure.Persistence;
 
 namespace RubiksCube.Infrastructure.Tests;
 
-/// <summary>
-/// A private in-memory SQLite database per test, created through the real migrations. The
-/// connection must stay open: an in-memory SQLite database disappears when it is closed.
-/// </summary>
+/// <summary>In-memory SQLite per test, created by the real migration. The connection stays open or the database is gone.</summary>
 internal sealed class SqliteDatabase : IDisposable
 {
     private readonly SqliteConnection _connection = new("Data Source=:memory:");

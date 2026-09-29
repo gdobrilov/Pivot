@@ -80,10 +80,7 @@ public sealed class ResetCubeHandler(ICubeSessionRepository repository, IClock c
     }
 }
 
-/// <summary>
-/// The one place that knows the order: persist first, then tell the world. If a message bus is
-/// ever introduced, this is where an outbox would replace the direct dispatch.
-/// </summary>
+/// <summary>Save first, then publish. An outbox would slot in here if events ever left the process.</summary>
 internal static class SessionChanges
 {
     public static async Task<Result<CubeSnapshot>> CommitAsync(

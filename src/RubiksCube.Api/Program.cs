@@ -15,8 +15,7 @@ builder.Services
     .AddProblemDetails()
     .AddOpenApi();
 
-// Enums travel as their names ("Front", "Clockwise"), which is what a UI shows and what a reviewer can read.
-// [ApiController] turns model-binding failures (unknown face name, malformed JSON) into 400 problem details.
+// Enums travel as names ("Front", "Clockwise"). [ApiController] turns bad input into 400 problem details.
 builder.Services
     .AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -31,7 +30,7 @@ builder.Services.AddCors(options => options.AddPolicy(
 
 var app = builder.Build();
 
-// Apply pending migrations so a fresh checkout needs no manual database step.
+// Migrate at startup so a fresh checkout just runs.
 using (var scope = app.Services.CreateScope())
 {
     await scope.ServiceProvider.GetRequiredService<RubiksDbContext>().Database.MigrateAsync();
@@ -52,5 +51,5 @@ app.MapControllers();
 
 await app.RunAsync();
 
-/// <summary>Exposed so integration tests can host the API in-process with WebApplicationFactory.</summary>
+/// <summary>For WebApplicationFactory in the tests.</summary>
 public partial class Program;

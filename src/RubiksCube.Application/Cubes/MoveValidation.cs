@@ -5,7 +5,7 @@ namespace RubiksCube.Application.Cubes;
 
 internal static class MoveValidation
 {
-    /// <summary>Guards against values outside the enums, which can arrive from any untyped client.</summary>
+    /// <summary>Guards against values outside the enums, which an untyped client can send.</summary>
     public static ResultError? Validate(Face face, Rotation rotation)
     {
         if (!Enum.IsDefined(face))

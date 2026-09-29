@@ -5,12 +5,7 @@ using RubiksCube.Domain.Events;
 
 namespace RubiksCube.Infrastructure.Events;
 
-/// <summary>
-/// Calls every registered <see cref="IDomainEventListener{TEvent}"/> for each event, in order,
-/// on the calling thread. There is no queue and no retry: a listener that throws fails the request,
-/// which for an audit-style listener is the behaviour we want. Swapping this for a message-bus
-/// publisher changes nothing above it.
-/// </summary>
+/// <summary>Calls the listeners for each event, in order, on the calling thread. No queue, no retry.</summary>
 public sealed class InProcessDomainEventDispatcher(IServiceProvider serviceProvider) : IDomainEventDispatcher
 {
     private static readonly ConcurrentDictionary<Type, Invoker> Invokers = new();

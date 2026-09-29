@@ -24,7 +24,7 @@ export const SOLVED: CubeState = {
   faces: facesFrom('WWWWWWWWW', 'OOOOOOOOO', 'GGGGGGGGG', 'RRRRRRRRR', 'BBBBBBBBB', 'YYYYYYYYY'),
 };
 
-/** Expected state after the challenge sequence F R' U B' L D' (from the brief). */
+/** After F R' U B' L D', as in the brief. */
 export const CHALLENGE_RESULT: CubeState = {
   id: 'session-1',
   isSolved: false,
@@ -34,7 +34,7 @@ export const CHALLENGE_RESULT: CubeState = {
   faces: facesFrom('ROGBWWBBB', 'GYYOOGBGO', 'ORROGWWWW', 'YBORRWOYR', 'YBWOBYYYW', 'GGBRYRRGG'),
 };
 
-/** Preview of F on the solved cube: the front face keeps its colour, twelve strip stickers change. */
+/** F on a solved cube: twelve strip stickers change, the front face itself does not. */
 export const FRONT_PREVIEW: RotationPreview = {
   move: 'F',
   after: facesFrom('WWWWWWOOO', 'OOYOOYOOY', 'GGGGGGGGG', 'WRRWRRWRR', 'BBBBBBBBB', 'RRRYYYYYY'),

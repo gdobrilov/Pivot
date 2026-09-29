@@ -8,11 +8,7 @@ using RubiksCube.Infrastructure.Persistence;
 
 namespace RubiksCube.Api.Tests;
 
-/// <summary>
-/// Hosts the real API in-process against a private in-memory SQLite database. The connection is
-/// kept open for the factory's lifetime because an in-memory SQLite database lives only as long
-/// as its connection. Migrations run at startup exactly as in production.
-/// </summary>
+/// <summary>The real API in-process, on in-memory SQLite. The connection stays open for the factory's lifetime.</summary>
 public sealed class ApiFactory : WebApplicationFactory<Program>
 {
     private readonly SqliteConnection _connection = new("Data Source=:memory:");

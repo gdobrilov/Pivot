@@ -10,13 +10,7 @@ interface CubeNetProps {
   onSelectFace(face: Face): void;
 }
 
-/**
- * Exploded view of the cube, laid out as in the challenge brief:
- *        U
- *    L   F   R   B
- *        D
- * Each face is a button: click it to choose which face to turn.
- */
+/** The net from the brief (U on top, L F R B, D below). Click a face to pick it. */
 export function CubeNet({ faces, previewFaces, selectedFace, disabled, onSelectFace }: CubeNetProps) {
   return (
     <div className="net" aria-label="Cube net">

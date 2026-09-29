@@ -7,7 +7,7 @@ public enum ErrorType
     Conflict,
 }
 
-/// <summary>An expected failure of a use case, described for the caller rather than thrown.</summary>
+/// <summary>An expected failure, returned rather than thrown.</summary>
 public sealed record ResultError(ErrorType Type, string Message)
 {
     public static ResultError Validation(string message) => new(ErrorType.Validation, message);

@@ -9,7 +9,7 @@ interface RotationPickerProps {
   onRotate(face: Face, rotation: Rotation): void;
 }
 
-/** Second step of "turn a face": pick how far. Hovering a choice previews it on the net. */
+/** Step two of a turn: how far. Hover previews it on the net. */
 export function RotationPicker({ face, disabled, onHover, onLeave, onRotate }: RotationPickerProps) {
   if (!face) {
     return (

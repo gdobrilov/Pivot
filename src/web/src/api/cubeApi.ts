@@ -15,7 +15,7 @@ interface ProblemDetails {
   detail?: string;
 }
 
-/** Thin client over the REST API. Kept free of React so it can be unit tested and swapped. */
+/** REST client, no React inside so it can be tested and swapped. */
 export interface CubeApi {
   create(): Promise<CubeState>;
   get(id: string): Promise<CubeState>;

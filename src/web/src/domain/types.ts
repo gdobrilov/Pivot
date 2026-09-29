@@ -1,7 +1,7 @@
 export const COLOURS = ['White', 'Orange', 'Green', 'Red', 'Blue', 'Yellow'] as const;
 export type Colour = (typeof COLOURS)[number];
 
-/** Face names as the API spells them (enum names). */
+/** Spelled as the API enum names. */
 export const FACES = ['Up', 'Left', 'Front', 'Right', 'Back', 'Down'] as const;
 export type Face = (typeof FACES)[number];
 
@@ -14,10 +14,10 @@ export const ROTATION_LABELS: Readonly<Record<Rotation, string>> = {
   Half: '180°',
 };
 
-/** Nine stickers in row-major order, as returned by the API. */
+/** Nine stickers, row by row. */
 export type FaceStickers = readonly Colour[];
 
-/** The API serialises the six faces with camelCase keys. */
+/** camelCase keys, as the API serialises them. */
 export type FacesSnapshot = Readonly<Record<Lowercase<Face>, FaceStickers>>;
 
 export interface CubeState {
@@ -57,7 +57,7 @@ export interface Turn {
   readonly rotation: Rotation;
 }
 
-/** The sequence from the TTC challenge brief: F R' U B' L D'. */
+/** F R' U B' L D' from the brief. */
 export const CHALLENGE_SEQUENCE: readonly Turn[] = [
   { face: 'Front', rotation: 'Clockwise' },
   { face: 'Right', rotation: 'AntiClockwise' },
