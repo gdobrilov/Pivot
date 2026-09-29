@@ -1,4 +1,3 @@
-using RubiksCube.Domain;
 
 namespace RubiksCube.Domain.Tests;
 

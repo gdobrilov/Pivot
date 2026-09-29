@@ -1,5 +1,3 @@
-using RubiksCube.Console;
-
 namespace RubiksCube.Console.Tests;
 
 public class ConsoleAppTests

@@ -1,14 +1,14 @@
 # Pivot
 
 **We turn things around.** Pivot is a fictional startup with exactly one product: a cube you can turn.
-This repository is the entire company. It is my submission for the TTC Group Rubik's Cube challenge.
+This repository is the entire company.
 
 The cube starts solved and oriented like [rubiks-cube-solver.com](https://rubiks-cube-solver.com/):
 green front, red right, white up. Every quarter turn goes on the record.
 
 ## Quick start
 
-You need the free [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) and nothing else.
+You need the free [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) and nothing else.
 
 ```bash
 dotnet run --project src/RubiksCube.Console

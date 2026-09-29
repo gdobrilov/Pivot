@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using RubiksCube.Application.Abstractions;
+using RubiksCube.Domain;
 using RubiksCube.Domain.Events;
 
 namespace RubiksCube.Infrastructure.Events;
@@ -11,14 +12,14 @@ public sealed partial class RotationLoggingListener(ILogger<RotationLoggingListe
     public Task HandleAsync(CubeRotated domainEvent, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(domainEvent);
-        LogRotated(logger, domainEvent.SessionId, domainEvent.Sequence, domainEvent.Move.ToString(), domainEvent.OccurredAtUtc);
+        LogRotated(logger, domainEvent.SessionId, domainEvent.Sequence, domainEvent.Move, domainEvent.OccurredAtUtc);
         return Task.CompletedTask;
     }
 
     public Task HandleAsync(RotationUndone domainEvent, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(domainEvent);
-        LogUndone(logger, domainEvent.SessionId, domainEvent.Sequence, domainEvent.UndoneMove.ToString(), domainEvent.OccurredAtUtc);
+        LogUndone(logger, domainEvent.SessionId, domainEvent.Sequence, domainEvent.UndoneMove, domainEvent.OccurredAtUtc);
         return Task.CompletedTask;
     }
 
@@ -30,10 +31,10 @@ public sealed partial class RotationLoggingListener(ILogger<RotationLoggingListe
     }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Cube {SessionId} rotated {Move} (#{Sequence}) at {OccurredAtUtc}")]
-    private static partial void LogRotated(ILogger logger, Guid sessionId, int sequence, string move, DateTimeOffset occurredAtUtc);
+    private static partial void LogRotated(ILogger logger, Guid sessionId, int sequence, Move move, DateTimeOffset occurredAtUtc);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Cube {SessionId} undid {Move} (#{Sequence}) at {OccurredAtUtc}")]
-    private static partial void LogUndone(ILogger logger, Guid sessionId, int sequence, string move, DateTimeOffset occurredAtUtc);
+    private static partial void LogUndone(ILogger logger, Guid sessionId, int sequence, Move move, DateTimeOffset occurredAtUtc);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Cube {SessionId} reset (#{Sequence}) at {OccurredAtUtc}")]
     private static partial void LogReset(ILogger logger, Guid sessionId, int sequence, DateTimeOffset occurredAtUtc);

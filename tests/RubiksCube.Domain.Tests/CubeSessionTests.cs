@@ -1,4 +1,3 @@
-using RubiksCube.Domain;
 using RubiksCube.Domain.Events;
 using RubiksCube.Domain.Sessions;
 
