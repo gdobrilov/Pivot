@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
-using RubiksCube.Api.Endpoints;
 using RubiksCube.Application;
 using RubiksCube.Infrastructure;
 using RubiksCube.Infrastructure.Persistence;
@@ -16,11 +15,13 @@ builder.Services
     .AddProblemDetails()
     .AddOpenApi();
 
-builder.Services.AddHealthChecks().AddDbContextCheck<RubiksDbContext>();
-
 // Enums travel as their names ("Front", "Clockwise"), which is what a UI shows and what a reviewer can read.
-builder.Services.ConfigureHttpJsonOptions(options =>
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+// [ApiController] turns model-binding failures (unknown face name, malformed JSON) into 400 problem details.
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
+builder.Services.AddHealthChecks().AddDbContextCheck<RubiksDbContext>();
 
 // The React dev server (Vite) runs on another origin during local development.
 const string DevelopmentCorsPolicy = "Development";
@@ -36,12 +37,7 @@ using (var scope = app.Services.CreateScope())
     await scope.ServiceProvider.GetRequiredService<RubiksDbContext>().Database.MigrateAsync();
 }
 
-// Malformed input (e.g. an unknown face name in the JSON body) is the client's fault, not ours:
-// keep the 400 that model binding chose instead of turning it into a 500.
-app.UseExceptionHandler(new ExceptionHandlerOptions
-{
-    StatusCodeSelector = exception => exception is BadHttpRequestException bad ? bad.StatusCode : StatusCodes.Status500InternalServerError,
-});
+app.UseExceptionHandler();
 app.UseStatusCodePages();
 
 if (app.Environment.IsDevelopment())
@@ -52,7 +48,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapHealthChecks("/health");
-app.MapCubeEndpoints();
+app.MapControllers();
 
 await app.RunAsync();
 

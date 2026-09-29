@@ -57,7 +57,7 @@ dotnet test
 | `src/RubiksCube.Application` | Use cases as commands and queries with one handler each; the ports they need (repository, clock, event dispatcher); read models. |
 | `src/RubiksCube.Infrastructure` | Adapters: EF Core + SQLite persistence with a migration, the system clock, the in-process event dispatcher and a logging listener. |
 | `src/RubiksCube.Console` | **The challenge deliverable.** Domain + renderer only; prints the exploded view before and after a move sequence. |
-| `src/RubiksCube.Api` | ASP.NET Core minimal API exposing sessions over HTTP, with OpenAPI docs and problem-details errors. |
+| `src/RubiksCube.Api` | ASP.NET Core Web API (controllers) exposing sessions over HTTP, with OpenAPI docs and problem-details errors. |
 | `src/web` | React + TypeScript (Vite) UI: click a face, pick a rotation, preview, undo, activity log. |
 | `tests/*` | xUnit tests per .NET layer (domain, handlers, EF mapping against SQLite, HTTP end-to-end) and Vitest for the UI. |
 
@@ -225,8 +225,11 @@ and in-process domain events:
 * **Infrastructure** implements the ports. The aggregate is mapped without touching the domain (Fluent configuration
   only): the cube as a facelet string, the log as an owned table written in the same transaction, `Version` as an
   optimistic concurrency token. The event dispatcher calls listeners synchronously in-process.
-* **API** and **Console** are thin. The console does not even use DI: it calls the domain and the renderer directly,
-  which keeps the challenge deliverable trivially readable.
+* **API** and **Console** are thin. The API is one controller whose actions build a command or query, hand it to the
+  handler injected for that action, and translate the `Result` into a status code in one shared base method.
+  `[ApiController]` turns model-binding failures (an unknown face name, malformed JSON) into 400 problem details
+  before any handler runs. The console does not even use DI: it calls the domain and the renderer directly, which
+  keeps the challenge deliverable trivially readable.
 
 ### The cube model (how a turn works)
 
