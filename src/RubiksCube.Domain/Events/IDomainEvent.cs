@@ -7,9 +7,3 @@ public interface IDomainEvent
 
     DateTimeOffset OccurredAtUtc { get; }
 }
-
-public sealed record CubeRotated(Guid SessionId, int Sequence, Move Move, DateTimeOffset OccurredAtUtc) : IDomainEvent;
-
-public sealed record RotationUndone(Guid SessionId, int Sequence, Move UndoneMove, DateTimeOffset OccurredAtUtc) : IDomainEvent;
-
-public sealed record CubeReset(Guid SessionId, int Sequence, DateTimeOffset OccurredAtUtc) : IDomainEvent;

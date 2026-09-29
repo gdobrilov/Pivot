@@ -1,12 +1,5 @@
 namespace RubiksCube.Application.Common;
 
-public enum ErrorType
-{
-    Validation,
-    NotFound,
-    Conflict,
-}
-
 /// <summary>An expected failure, returned rather than thrown.</summary>
 public sealed record ResultError(ErrorType Type, string Message)
 {

@@ -157,7 +157,8 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:5173>. The dev server proxies `/api` to `http://localhost:5000`.
+Open <http://localhost:5173>. The dev server proxies `/api` to `http://localhost:5000`, so the browser talks to one
+origin; the API also allows that origin through `Cors:AllowedOrigins` in `appsettings.Development.json`.
 
 How it works: click a face on the net to select it; three buttons appear (90° clockwise, 90° anti-clockwise, 180°).
 Hovering a button asks the API for a preview and marks every sticker that would change, already showing its new
@@ -194,6 +195,7 @@ cd src/web && npm test      # front-end tests
 | `RubiksCube.Domain.Tests` | The exact result of every single turn (cross-checked with rubiks-cube-solver.com) and of the challenge sequence; the algebra (four turns = identity, `X X'` = identity, `X'` = `X X X`, `X2` = `X X`, sexy move x6, centres fixed, sticker counts); the reading-direction rule of the geometry table; the model is not tied to 3x3; notation; `CubeSession` log, undo and reset semantics. |
 | `RubiksCube.Application.Tests` | Each handler with test doubles: create, rotate, undo, reset, preview, log; validation, not-found and conflict paths; events are dispatched only after a successful save. |
 | `RubiksCube.Infrastructure.Tests` | The real EF Core mapping against in-memory SQLite created by the migration: round trip of a session and its log, optimistic concurrency conflict between two contexts, what the columns actually contain. |
+| `RubiksCube.Console.Tests` | The console entry point with output captured: the brief's result without arguments, `--steps` descriptions, exit code 1 and a usage line for invalid notation. |
 | `RubiksCube.Api.Tests` | HTTP end to end in-process (`WebApplicationFactory`) on the real stack: statuses, `Location`, enum names in JSON, the challenge sequence, preview, undo/reset in the log, problem details for 400/404, plain-text net, health. |
 | `src/web` (Vitest) | Net rendering and face selection, preview highlighting, the rotation picker, the activity log, the API client, the session hook. |
 
@@ -228,8 +230,8 @@ and in-process domain events:
 * **API** and **Console** are thin. The API is one controller whose actions build a command or query, hand it to the
   handler injected for that action, and translate the `Result` into a status code in one shared base method.
   `[ApiController]` turns model-binding failures (an unknown face name, malformed JSON) into 400 problem details
-  before any handler runs. The console does not even use DI: it calls the domain and the renderer directly, which
-  keeps the challenge deliverable trivially readable.
+  before any handler runs. The console is one static `ConsoleApp.Run(args, output, error)` over the domain and the renderer, with no DI,
+  so the challenge deliverable stays trivially readable and is tested with captured output.
 
 ### The cube model (how a turn works)
 

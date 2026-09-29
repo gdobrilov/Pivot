@@ -7,7 +7,8 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("Rubiks") ?? "Data Source=rubiks.db";
+var connectionString = builder.Configuration.GetConnectionString("Rubiks")
+    ?? throw new InvalidOperationException("Connection string 'Rubiks' is not configured.");
 
 builder.Services
     .AddApplication()
@@ -22,11 +23,10 @@ builder.Services
 
 builder.Services.AddHealthChecks().AddDbContextCheck<RubiksDbContext>();
 
-// The React dev server (Vite) runs on another origin during local development.
-const string DevelopmentCorsPolicy = "Development";
-builder.Services.AddCors(options => options.AddPolicy(
-    DevelopmentCorsPolicy,
-    policy => policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod()));
+// Origins allowed to call the API from a browser, e.g. the Vite dev server. Empty means none.
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+builder.Services.AddCors(options => options.AddDefaultPolicy(
+    policy => policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
 
@@ -39,9 +39,10 @@ using (var scope = app.Services.CreateScope())
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 
+app.UseCors();
+
 if (app.Environment.IsDevelopment())
 {
-    app.UseCors(DevelopmentCorsPolicy);
     app.MapOpenApi();
     app.MapScalarApiReference(options => options.WithTitle("Rubik's Cube API"));
 }

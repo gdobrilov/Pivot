@@ -36,8 +36,8 @@ public sealed class CubeSession
             {
                 switch (entry.Kind)
                 {
-                    case LogEntryKind.Rotation:
-                        stack.Push(entry.Move!.Value);
+                    case LogEntryKind.Rotation when entry.Move is { } move:
+                        stack.Push(move);
                         break;
                     case LogEntryKind.Undo:
                         stack.Pop();

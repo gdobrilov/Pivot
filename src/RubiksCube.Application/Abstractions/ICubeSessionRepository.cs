@@ -12,20 +12,3 @@ public interface ICubeSessionRepository
     /// <exception cref="ConcurrencyConflictException">Someone else changed the session in the meantime.</exception>
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }
-
-public sealed class ConcurrencyConflictException : Exception
-{
-    public ConcurrencyConflictException()
-    {
-    }
-
-    public ConcurrencyConflictException(string message)
-        : base(message)
-    {
-    }
-
-    public ConcurrencyConflictException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
-}
