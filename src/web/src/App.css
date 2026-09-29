@@ -8,7 +8,7 @@
   --border: #dcdad3;
   --sticker: 34px;
   --gap: 3px;
-  --turn-ms: 380ms;
+  --turn-ms: 650ms;
 }
 
 * {
@@ -142,17 +142,17 @@ h2 {
   display: grid;
   place-items: center;
   border: 2px solid transparent;
-  transition: background-color 260ms ease;
+  transition: background-color 450ms ease;
 }
 
 .sticker--changing {
   border: 2px dashed #111;
-  animation: pulse 900ms ease-in-out infinite alternate;
+  animation: pulse 1400ms ease-in-out infinite alternate;
 }
 
 @keyframes pulse {
   from { filter: brightness(1); }
-  to { filter: brightness(0.75); }
+  to { filter: brightness(0.85); }
 }
 
 .sticker__symbol {
@@ -255,7 +255,7 @@ button:disabled {
   gap: 12px;
   padding: 4px 0;
   border-bottom: 1px solid var(--border);
-  animation: slide-in 220ms ease-out;
+  animation: slide-in 320ms ease-out;
 }
 
 @keyframes slide-in {
